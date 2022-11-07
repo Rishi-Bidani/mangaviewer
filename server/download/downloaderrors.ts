@@ -21,4 +21,4 @@ class DownloadImageError extends Error {
     }
 }
 
-export { ImageFetchError, DownloadImageError };
+export { ImageFetchError, DownloadImageError, MainFetchError };
