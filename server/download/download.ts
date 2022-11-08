@@ -4,6 +4,7 @@ import path from "path";
 import fetch from "node-fetch";
 import { Response } from "node-fetch";
 
+import { MangaClash } from "./classnames.js";
 import { ImageFetchError, DownloadImageError, MainFetchError } from "./downloaderrors.js";
 
 interface IChapterLink {
@@ -25,17 +26,10 @@ interface IMetaDataChapter {
     numberOfImages: number;
 }
 
-const MangaClash = {
-    selfLink: "link[rel='canonical']",
-    title: ".post-title h1",
-    coverImage: ".summary_image img",
-    chapterList: ".wp-manga-chapter a",
-    mangaImage: ".reading-content img",
-};
-
 const BASE_MANGA_FOLDER = path.resolve("test");
 
 class MetaData {
+    // Create a log file for the root folder
     static async root(rootDom: JSDOM): Promise<void> {
         // The file will follow IMetaDataRoot structure
         const mangaName = rootDom.window.document.querySelector(MangaClash.title)?.textContent;
@@ -56,6 +50,7 @@ class MetaData {
         await fs.writeFile(metaDataPath, JSON.stringify(metaData));
     }
 
+    // Create a log file for the chapter folder
     static async chapter(logObject: IMetaDataChapter, chapterFolder: string): Promise<void> {
         await fs.writeFile(
             path.join(chapterFolder, "log.json"),
