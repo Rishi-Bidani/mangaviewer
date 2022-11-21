@@ -14,7 +14,7 @@ interface MangaClashLinks {
 
 const MangaClashLinks: MangaClashLinks = {
     hotMangas: new URL("https://mangaclash.com/manga/?m_orderby=views"),
-    searchManga: new URL("https://mangaclash.com/manga/?s="),
+    searchManga: new URL("https://mangaclash.com/manga/?"),
 };
 
 function extractMangaCard(mangaCard: Element): IManga | undefined {
@@ -51,7 +51,6 @@ async function getHot(): Promise<IManga[]> {
     // }
 
     const mangaCards: Element[] = Array.from(dom.querySelectorAll(".manga"));
-    console.log(mangaCards);
     mangaCards.forEach((mangaCard: Element) => {
         const hotManga = extractMangaCard(mangaCard);
         if (hotManga) {
@@ -63,10 +62,13 @@ async function getHot(): Promise<IManga[]> {
 
 async function searchManga(mangaName: string): Promise<IManga[]> {
     const results: IManga[] = [];
-    const link: string = MangaClashLinks.searchManga.toString() + mangaName;
-    const dom = new JSDOM(await (await fetch(link)).text()).window.document;
+    const link: URL = MangaClashLinks.searchManga;
+    link.searchParams.append("s", mangaName);
+    link.searchParams.append("post_type", "wp-manga");
+    console.log(link);
+    const dom = new JSDOM(await (await fetch(link.toString())).text()).window.document;
 
-    const mangaCards: Element[] = Array.from(dom.querySelectorAll(".manga"));
+    const mangaCards: Element[] = Array.from(dom.querySelectorAll(".row .c-tabs-item__content"));
     mangaCards.forEach((mangaCard: Element) => {
         const result = extractMangaCard(mangaCard);
         if (result) {
@@ -76,17 +78,23 @@ async function searchManga(mangaName: string): Promise<IManga[]> {
     return results;
 }
 
-interface MangaClash {
+interface IMangaClash {
     getHotMangas: () => Promise<IManga[]>;
+    searchManga: (mangaName: string) => Promise<IManga[]>;
 }
 
-const mangaclash: MangaClash = {
+const mangaclash: IMangaClash = {
     getHotMangas: getHot,
+    searchManga: searchManga,
 };
 
 export default mangaclash;
 
 // TESTS
-mangaclash.getHotMangas().then((hotMangas) => {
-    console.log(hotMangas);
+// mangaclash.getHotMangas().then((hotMangas) => {
+//     console.log(hotMangas);
+// });
+
+mangaclash.searchManga("naruto").then((mangas) => {
+    console.log(mangas);
 });

@@ -36,6 +36,17 @@ app.get("/mangaclash/hot", async (req: express.Request, res: express.Response) =
     res.send(hotMangas);
 });
 
+app.get("/mangaclash/search", async (req, res) => {
+    const mangaName = req.query.manga;
+    console.log(mangaName);
+    if (typeof mangaName !== "string") {
+        res.status(400).send("invalid manga name");
+    } else {
+        const searchResults = await mangaclash.searchManga(mangaName);
+        res.send(searchResults);
+    }
+});
+
 http.listen(PORT, "0.0.0.0", () => {
     console.log("Website live on: " + `http://localhost:${PORT}`);
 });
