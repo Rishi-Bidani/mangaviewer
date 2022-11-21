@@ -2,3 +2,6 @@ GET http://localhost:5000/mangas
 
 ###
 GET http://localhost:5000/mangas/claymore
+
+###
+GET http://localhost:5000/mangaclash/hot

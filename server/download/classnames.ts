@@ -1,4 +1,12 @@
-const MangaClash = {
+interface IMangaClashClasses {
+    coverImage: string;
+    chapterList: string;
+    mangaImage: string;
+    title: string;
+    selfLink: string;
+}
+
+const MangaClash: IMangaClashClasses = {
     selfLink: "link[rel='canonical']",
     title: ".post-title h1",
     coverImage: ".summary_image img",

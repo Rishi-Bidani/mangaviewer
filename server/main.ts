@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+
 // require for modules
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -11,6 +12,7 @@ const cors = require("cors");
 app.use(cors());
 
 import FileHandler from "./system/filesystem.js";
+import mangaclash from "./download/mangaclash.js";
 
 app.get("/", async (req: express.Request, res: express.Response) => {
     res.send("Hello world!");
@@ -27,6 +29,11 @@ app.get("/mangas/:mangaName/chapters", async (req: express.Request, res: express
     const mangaName = req.params.mangaName;
     const chapterList = await FileHandler.getChapterList(mangaName);
     res.send(chapterList);
+});
+
+app.get("/mangaclash/hot", async (req: express.Request, res: express.Response) => {
+    const hotMangas = await mangaclash.getHotMangas();
+    res.send(hotMangas);
 });
 
 http.listen(PORT, "0.0.0.0", () => {

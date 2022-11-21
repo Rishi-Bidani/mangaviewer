@@ -107,17 +107,17 @@ async function downloadChapter(chapter: IChapterLink, pathname: string): Promise
             MetaData.chapter(logObject, chapterFolder);
         } catch (error) {}
 
-        // const downloadPromises: Promise<void>[] = images.map((image, index) => {
-        //     if (image) {
-        //         const imageExtension = path.extname(image);
-        //         const imageName = `${index + 1}${imageExtension}`;
-        //         const downloadPath = path.join(chapterFolder, imageName);
-        //         return downloadImageFromURL(image, downloadPath);
-        //     } else {
-        //         throw Error("Image is undefined");
-        //     }
-        // });
-        // Promise.all(downloadPromises);
+        const downloadPromises: Promise<void>[] = images.map((image, index) => {
+            if (image) {
+                const imageExtension = path.extname(image);
+                const imageName = `${index + 1}${imageExtension}`;
+                const downloadPath = path.join(chapterFolder, imageName);
+                return downloadImageFromURL(image, downloadPath);
+            } else {
+                throw Error("Image is undefined");
+            }
+        });
+        Promise.all(downloadPromises);
     } catch (error) {
         if (error instanceof ImageFetchError) {
             console.error("Error in getChapterImages");
