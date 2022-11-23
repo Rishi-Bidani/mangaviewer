@@ -1,0 +1,41 @@
+.flex {
+    display: flex;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-center {
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-center-inline {
+    justify-content: center;
+}
+
+.gap-1 {
+    gap: 1rem;
+}
+
+.margin-inline-1 {
+    margin-inline: 1rem;
+}
+
+.margin-block-1 {
+    margin-block: 1rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.padding-block-1 {
+    padding-block: 1rem;
+}
+
+.margin-inline-auto {
+    margin-inline: auto;
+}
