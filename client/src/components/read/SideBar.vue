@@ -11,13 +11,15 @@ import SideBarPC from "./SideBarPC.vue";
 import { defineProps, ref, onMounted } from "vue";
 import { Ref } from "vue";
 
-import Requests from "@/assets/js/requests";
+// import Requests from "@/assets/js/requests";
 
 const props = defineProps<{
     mangaName: string;
+    chapterList: string[];
+    activeChapter: string;
 }>();
 
-const chapterList: Ref<any> = ref();
+// const chapterList: Ref<any> = ref();
 
 const viewportWidth: Ref<number> = ref(1000);
 const isMobile: Ref<boolean> = ref(false);
@@ -30,9 +32,9 @@ window.addEventListener("resize", () => {
     isMobile.value = viewportWidth.value < 500;
 });
 
-onMounted(async () => {
-    chapterList.value = await Requests.getChapterList(props.mangaName);
-});
+// onMounted(async () => {
+//     chapterList.value = await Requests.getChapterList(props.mangaName);
+// });
 </script>
 <style scoped>
 @import url("../../assets/css/colors.css");

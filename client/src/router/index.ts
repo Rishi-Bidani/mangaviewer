@@ -16,7 +16,7 @@ const routes: Array<RouteRecordRaw> = [
         component: Home,
     },
     {
-        path: "/read/:mangaName",
+        path: "/read/:mangaName/:chapter?",
         name: "Read",
         component: Read,
     },

@@ -51,28 +51,12 @@ const Chapters = {
     },
 };
 
-// const chapterOrderedList: Ref<any> = ref();
-// // const firstChapterName = computed(() => {
-// //     return props.chapterList.value[0];
-// // });
-
-// onMounted(async () => {
-//     const defaultActive = 1;
-//     const listElement = chapterOrderedList.value.querySelector(`:first-child`);
-//     listElement.classList.add("active");
-// });
-
 function loadChapter(event: Event) {
     const listElement = event.target as HTMLElement;
     const chapterName = listElement.dataset.chapterName as string;
 
-    //
-
-    // set class active on list element
     Chapters.clearActive();
     listElement.classList.add("active");
-    // activeListElement.value.classList.remove("active");
-    // activeListElement.value = listElement;
 }
 </script>
 
