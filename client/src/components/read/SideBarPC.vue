@@ -7,10 +7,10 @@
             <ol class="flex-column" ref="chapterOrderedList">
                 <li
                     ref="chapterListItem"
-                    v-for="(chapter, index) in chapterList"
+                    v-for="chapter in chapterList"
                     :key="chapter"
                     class="item__chapter-list"
-                    :class="index === activeElementIndex ? 'active' : ''"
+                    :class="chapter == chapterName ? 'active' : ''"
                     :data-chapter-name="chapter"
                     @click="loadChapter"
                 >
@@ -30,9 +30,10 @@ import { Ref } from "vue";
 const props = defineProps<{
     mangaName: string;
     chapterList: any;
+    chapterName: string;
 }>();
 
-const activeElementIndex = ref(0);
+// const activeElementIndex = ref(0);
 const chapterListItem: Ref<any> = ref([]);
 
 const Chapters = {

@@ -1,6 +1,11 @@
 <template>
     <aside :key="Number(isMobile)">
-        <SideBarPC v-if="!isMobile" :mangaName="mangaName" :chapterList="chapterList" />
+        <SideBarPC
+            v-if="!isMobile"
+            :mangaName="mangaName"
+            :chapterList="chapterList"
+            :chapterName="chapterName"
+        />
         <SidedBarMobile v-if="isMobile" />
     </aside>
 </template>
@@ -23,6 +28,7 @@ const props = defineProps<{
 
 const viewportWidth: Ref<number> = ref(1000);
 const isMobile: Ref<boolean> = ref(false);
+const chapterName: string = decodeURIComponent(window.location.hash).split("/").at(-1) as string;
 
 viewportWidth.value = document.documentElement.clientWidth;
 isMobile.value = viewportWidth.value < 500;
