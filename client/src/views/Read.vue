@@ -19,7 +19,10 @@ import { Ref } from "vue";
 const chapterList: Ref<string[]> = ref([]);
 const activeChapter: Ref<string> = ref("");
 
-const mangaName: string = decodeURIComponent(window.location.hash.split("#/read/")[1]);
+const fullURL: string = decodeURIComponent(window.location.hash);
+// splitting the URL to get the manga name
+const mangaName: string = fullURL.split("#/read/")[1].split("/")[0];
+
 onMounted(async () => {
     chapterList.value = await Requests.getChapterList(mangaName);
     activeChapter.value = chapterList.value[0] as string;

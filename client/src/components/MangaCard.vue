@@ -9,14 +9,21 @@
     </article>
 </template>
 <script lang="ts" setup>
-import { ref, defineProps } from "vue";
+import { ref, defineProps, defineEmits } from "vue";
+
+import Requests from "@/assets/js/requests";
 
 const props = defineProps<{
     name: string;
 }>();
 
-function read() {
-    window.location.href = "#/read/" + props.name;
+const emits = defineEmits(["data:mangaName"]);
+
+async function read() {
+    const mangaName = props.name;
+    const firstChapter: string = (await Requests.getChapterList(mangaName))[0];
+    // window.location.href = "#/read/" + props.name;
+    window.location.href = `#/read/${mangaName}/${firstChapter}`;
 }
 
 const name = ref(props.name);
