@@ -1,6 +1,8 @@
 import express from "express";
 import path from "path";
 
+import { orderBy } from "natural-orderby";
+
 // require for modules
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -27,7 +29,7 @@ app.get("/mangas", async (req: express.Request, res: express.Response) => {
 app.get("/mangas/:mangaName/chapters", async (req: express.Request, res: express.Response) => {
     // Return the list of all the chapters of the manga
     const mangaName = req.params.mangaName;
-    const chapterList = await FileHandler.getChapterList(mangaName);
+    const chapterList = orderBy(await FileHandler.getChapterList(mangaName));
     res.send(chapterList);
 });
 

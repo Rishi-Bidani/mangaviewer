@@ -801,6 +801,11 @@ ms@2.1.3, ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
+natural-orderby@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/natural-orderby/-/natural-orderby-3.0.1.tgz#6beb1d077887e7806d917e92f71d25b2e8884c17"
+  integrity sha512-NDMgsENqBcdz3//tnoKg+BFG6fugJxARHNwfMLp8qdsJlEtgo5EKOIFTMeiKvai+STuUVrXv4OMQSyH0uF2SBg==
+
 negotiator@0.6.3:
   version "0.6.3"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.3.tgz#58e323a72fedc0d6f9cd4d31fe49f51479590ccd"

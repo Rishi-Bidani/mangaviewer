@@ -95,6 +95,6 @@ export default mangaclash;
 //     console.log(hotMangas);
 // });
 
-mangaclash.searchManga("naruto").then((mangas) => {
-    console.log(mangas);
-});
+// mangaclash.searchManga("naruto").then((mangas) => {
+//     console.log(mangas);
+// });

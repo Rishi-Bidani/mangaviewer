@@ -6,7 +6,12 @@
             :chapterList="chapterList"
             :chapterName="chapterName"
         />
-        <SidedBarMobile v-if="isMobile" />
+        <SidedBarMobile
+            v-if="isMobile"
+            :mangaName="mangaName"
+            :chapterList="chapterList"
+            :chapterName="chapterName"
+        />
     </aside>
 </template>
 <script lang="ts" setup>
@@ -59,7 +64,7 @@ aside {
 
 @media screen and (max-width: 500px) {
     aside {
-        width: 100vw;
+        width: 100%;
         height: 3rem;
     }
 
