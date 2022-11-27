@@ -1,7 +1,12 @@
 <template>
     <div class="navigation__pc">
-        <header>
-            {{ mangaName }}
+        <header class="flex">
+            <span class="title">
+                {{ mangaName }}
+            </span>
+            <span class="settings">
+                <img src="../../assets/icons/gear.svg" alt="settings" @click="showSettings" />
+            </span>
         </header>
         <div class="container__chapter-list">
             <ol class="flex-column" ref="chapterOrderedList">
@@ -60,6 +65,10 @@ function loadChapter(event: Event) {
     listElement.classList.add("active");
     window.location.href = `#/read/${props.mangaName}/${chapterName}`;
 }
+
+function showSettings() {
+    console.log("show settings");
+}
 </script>
 
 <style scoped>
@@ -75,6 +84,18 @@ header {
     position: sticky;
     top: 0;
     background-color: var(--secondary-clr);
+
+    place-content: space-between;
+}
+
+.settings {
+    height: 1.5rem;
+}
+
+.settings img {
+    height: 100%;
+    filter: invert(1);
+    cursor: pointer;
 }
 
 ol {

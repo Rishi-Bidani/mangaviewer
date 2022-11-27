@@ -67,6 +67,6 @@ watch(activeChapter, async (newValue: string) => {
 }
 
 .image {
-    width: 100%;
+    width: 80%;
 }
 </style>
