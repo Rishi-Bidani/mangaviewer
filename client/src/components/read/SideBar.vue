@@ -33,7 +33,14 @@ const props = defineProps<{
 
 const viewportWidth: Ref<number> = ref(1000);
 const isMobile: Ref<boolean> = ref(false);
-const chapterName: string = decodeURIComponent(window.location.hash).split("/").at(-1) as string;
+const chapterName: Ref<string> = ref(
+    decodeURIComponent(window.location.hash).split("/").at(-1) as string
+);
+// const chapterName: string = decodeURIComponent(window.location.hash).split("/").at(-1) as string;
+
+window.addEventListener("hashchange", () => {
+    chapterName.value = decodeURIComponent(window.location.hash).split("/").at(-1) as string;
+});
 
 viewportWidth.value = document.documentElement.clientWidth;
 isMobile.value = viewportWidth.value < 500;

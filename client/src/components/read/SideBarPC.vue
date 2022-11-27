@@ -87,6 +87,10 @@ ol {
     cursor: pointer;
 }
 
+.item__chapter-list:hover {
+    background-color: var(--sidebar-active-clr);
+}
+
 .active {
     background-color: var(--sidebar-active-clr);
     color: var(--primary-text-clr);

@@ -32,6 +32,15 @@ export default class Requests {
         return await response.json();
     }
 
+    static async getChapterImages(manga: string, chapter: string) {
+        const url = new URL(
+            BASE_URL +
+                ENDPOINTS.mangaChapterImages.replace(":manga", manga).replace(":chapter", chapter)
+        );
+        const response = await fetch(url.toString());
+        return await response.json();
+    }
+
     static MangaClash() {
         async function hotMangas() {
             const response = await fetch(BASE_URL + ENDPOINTS.mangaClashHotMangas);

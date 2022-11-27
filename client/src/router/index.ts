@@ -3,6 +3,7 @@ import { Router } from "vue-router";
 import Home from "../views/Download.vue";
 import HomePage from "../views/HomePage.vue";
 import Read from "../views/Read.vue";
+import PageNotFound from "../views/PageNotFound.vue";
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -16,7 +17,7 @@ const routes: Array<RouteRecordRaw> = [
         component: Home,
     },
     {
-        path: "/read/:mangaName/:chapter?",
+        path: "/read/:mangaName/:chapter",
         name: "Read",
         component: Read,
     },
@@ -27,6 +28,11 @@ const routes: Array<RouteRecordRaw> = [
         // this generates a separate chunk (about.[hash].js) for this route
         // which is lazy-loaded when the route is visited.
         component: () => import(/* webpackChunkName: "about" */ "../views/About.vue"),
+    },
+    {
+        path: "/:pathMatch(.*)*",
+        name: "404",
+        component: PageNotFound,
     },
 ];
 
