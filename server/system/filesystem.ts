@@ -75,7 +75,11 @@ export default class FileHandler {
         const { folders } = await getFilesAndFolders(path.join(await baseFolder, manga));
         return folders;
     }
-    // static async getChapterImages(manga: string, chapter: string): Promise<string[]> {}
+    static async getChapterImages(manga: string, chapter: string): Promise<string[]> {
+        const baseFolder = FileHandler.baseFolder;
+        const { files } = await getFilesAndFolders(path.join(await baseFolder, manga, chapter));
+        return files;
+    }
 
     // get data
     // static async getMangaListData(): Promise<> {}

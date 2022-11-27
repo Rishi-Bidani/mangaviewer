@@ -33,6 +33,18 @@ app.get("/mangas/:mangaName/chapters", async (req: express.Request, res: express
     res.send(chapterList);
 });
 
+app.get(
+    "/mangas/:manga/chapters/:chapter/images",
+    async (req: express.Request, res: express.Response) => {
+        // Return the list of all the images of the chapter
+        const manga = req.params.manga;
+        const chapter = req.params.chapter;
+        const images = orderBy(await FileHandler.getChapterImages(manga, chapter));
+        res.send(images);
+    }
+);
+
+// mangaclash stuff
 app.get("/mangaclash/hot", async (req: express.Request, res: express.Response) => {
     const hotMangas = await mangaclash.getHotMangas();
     res.send(hotMangas);
