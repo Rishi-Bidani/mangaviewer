@@ -1,11 +1,17 @@
 <template>
-    <section class="main">
-        <side-bar
-            :mangaName="mangaName"
-            :chapterList="chapterList"
-            :activeChapter="activeChapter"
-        />
-        <section class="container__images"></section>
+    <section class="main flex">
+        <SideBar :mangaName="mangaName" :chapterList="chapterList" :activeChapter="activeChapter" />
+        <section class="container__images">
+            <div class="images">
+                <img
+                    class="image"
+                    v-for="image in chapterImages"
+                    :key="image"
+                    :src="image"
+                    :alt="image"
+                />
+            </div>
+        </section>
     </section>
 </template>
 <script lang="ts" setup>
@@ -46,6 +52,21 @@ watch(activeChapter, async (newValue: string) => {
 @import url("../assets/css/utility.css");
 
 .main {
+    display: flex;
+    height: 100vh;
     overflow: hidden;
+}
+
+.container__images {
+    flex: 1;
+    overflow: auto;
+}
+
+.images {
+    padding-inline: 1rem;
+}
+
+.image {
+    width: 100%;
 }
 </style>
