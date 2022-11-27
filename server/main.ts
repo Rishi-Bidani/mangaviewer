@@ -10,6 +10,9 @@ const app = express();
 const http = require("http").Server(app);
 const PORT: number = 5000;
 
+const BASE_FOLDER = await FileHandler.baseFolder;
+app.use(express.static(BASE_FOLDER));
+
 const cors = require("cors");
 app.use(cors());
 
@@ -39,7 +42,9 @@ app.get(
         // Return the list of all the images of the chapter
         const manga = req.params.manga;
         const chapter = req.params.chapter;
-        const images = orderBy(await FileHandler.getChapterImages(manga, chapter));
+        const images = orderBy(await FileHandler.getChapterImages(manga, chapter)).map((image) => {
+            return `http://localhost:${PORT}/${image}`;
+        });
         res.send(images);
     }
 );
