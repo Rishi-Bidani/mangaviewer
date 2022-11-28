@@ -5,6 +5,7 @@
             :mangaName="mangaName"
             :chapterList="chapterList"
             :chapterName="chapterName"
+            @show-settings="$emit('showSettings')"
         />
         <SidedBarMobile
             v-if="isMobile"
@@ -53,6 +54,10 @@ window.addEventListener("resize", () => {
 // onMounted(async () => {
 //     chapterList.value = await Requests.getChapterList(props.mangaName);
 // });
+
+// function showSettings() {
+//     console.log("show settings");
+// }
 </script>
 <style scoped>
 @import url("../../assets/css/colors.css");

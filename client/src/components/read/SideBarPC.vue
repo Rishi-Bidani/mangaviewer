@@ -5,7 +5,11 @@
                 {{ mangaName }}
             </span>
             <span class="settings">
-                <img src="../../assets/icons/gear.svg" alt="settings" @click="showSettings" />
+                <img
+                    src="../../assets/icons/gear.svg"
+                    alt="settings"
+                    @click="$emit('showSettings')"
+                />
             </span>
         </header>
         <div class="container__chapter-list">
@@ -64,10 +68,6 @@ function loadChapter(event: Event) {
     Chapters.clearActive();
     listElement.classList.add("active");
     window.location.href = `#/read/${props.mangaName}/${chapterName}`;
-}
-
-function showSettings() {
-    console.log("show settings");
 }
 </script>
 

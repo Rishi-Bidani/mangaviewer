@@ -1,8 +1,13 @@
 <template>
     <section class="main flex">
-        <SideBar :mangaName="mangaName" :chapterList="chapterList" :activeChapter="activeChapter" />
+        <SideBar
+            :mangaName="mangaName"
+            :chapterList="chapterList"
+            :activeChapter="activeChapter"
+            @show-settings="showSettings"
+        />
         <section class="container__images">
-            <div class="images">
+            <div class="images" :style="'--image-width: ' + imageWidth + '%'">
                 <img
                     class="image"
                     v-for="image in chapterImages"
@@ -11,6 +16,10 @@
                     :alt="image"
                 />
             </div>
+        </section>
+        <section class="settings hidden">
+            <input type="range" @change="changeWidth" value="{{imageWidth}}" />
+            <output id="outputWidth">{{ imageWidth }}%</output>
         </section>
     </section>
 </template>
@@ -23,10 +32,13 @@ import { ref, onMounted, watch } from "vue";
 // types
 import { Ref } from "vue";
 
+// Reactive data
 const chapterList: Ref<string[]> = ref([]);
 const activeChapter: Ref<string> = ref("");
 const chapterImages: Ref<string[]> = ref([]);
+const imageWidth: Ref<number> = ref(80);
 
+// Constants and computed
 const fullURL: string = decodeURIComponent(window.location.hash);
 // splitting the URL to get the manga name
 const mangaName: string = fullURL.split("#/read/")[1].split("/")[0];
@@ -38,14 +50,27 @@ onMounted(async () => {
 });
 
 window.addEventListener("hashchange", () => {
-    activeChapter.value = decodeURIComponent(window.location.hash).split("/").at(-1) as string;
+    const hash: string = decodeURIComponent(window.location.hash);
+    activeChapter.value = hash.split("/").at(-1) as string;
+    // activeChapter.value = decodeURIComponent(window.location.hash).split("/").at(-1) as string;
 });
 
 watch(activeChapter, async (newValue: string) => {
     // get the images of the chapter
     chapterImages.value = await Requests.getChapterImages(mangaName, newValue);
-    console.log(chapterImages.value);
 });
+
+function showSettings(): void {
+    const sectionSettings: HTMLElement = document.querySelector("section.settings") as HTMLElement;
+    sectionSettings?.classList.toggle("hidden");
+}
+
+function changeWidth(event: Event): void {
+    // const newWidth: number = Number((event.target as HTMLElement).value);
+    const inputTag = event.target as HTMLInputElement;
+    const newWidth = Number(inputTag.value);
+    imageWidth.value = newWidth;
+}
 </script>
 <style scoped>
 @import url("../assets/css/colors.css");
@@ -64,9 +89,28 @@ watch(activeChapter, async (newValue: string) => {
 
 .images {
     padding-inline: 1rem;
+    display: flex;
+    flex-flow: column;
 }
 
 .image {
-    width: 80%;
+    width: var(--image-width);
+}
+
+.settings {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 50%;
+    background-color: var(--secondary-clr);
+    padding-block: 1rem;
+    padding-inline: 2rem;
+    border: 2px solid var(--sidebar-active-clr);
+    border-radius: 0.5rem;
+}
+
+.settings input[type="range"] {
+    width: 100%;
 }
 </style>
