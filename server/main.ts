@@ -10,6 +10,8 @@ const app = express();
 const http = require("http").Server(app);
 const PORT: number = 5000;
 
+const localIpV4Address = require("local-ipv4-address");
+
 const BASE_FOLDER = await FileHandler.baseFolder;
 app.use(express.static(BASE_FOLDER));
 
@@ -39,13 +41,22 @@ app.get("/mangas/:mangaName/chapters", async (req: express.Request, res: express
 app.get(
     "/mangas/:manga/chapters/:chapter/images",
     async (req: express.Request, res: express.Response) => {
-        // Return the list of all the images of the chapter
-        const manga = req.params.manga;
-        const chapter = req.params.chapter;
-        const images = orderBy(await FileHandler.getChapterImages(manga, chapter)).map((image) => {
-            return `http://localhost:${PORT}/${image}`;
-        });
-        res.send(images);
+        try {
+            // Return the list of all the images of the chapter
+            const manga = req.params.manga;
+            const chapter = req.params.chapter;
+            const ipAddress = await localIpV4Address();
+            const images = orderBy(await FileHandler.getChapterImages(manga, chapter)).map(
+                (image) => {
+                    // return `http://localhost:${PORT}/${image}`;
+                    return `http://${ipAddress}:${PORT}/${image}`;
+                }
+            );
+            res.send(images);
+        } catch (error: any) {
+            console.log(error);
+            res.status(400).send(error.code);
+        }
     }
 );
 
