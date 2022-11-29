@@ -54,9 +54,9 @@ const imageWidth: Ref<number> = ref(80);
 const imageBrightness: Ref<number> = ref(100);
 
 // Constants and computed
-const fullURL: string = decodeURIComponent(window.location.hash);
+const fullURL: string = decodeURIComponent(window.location.pathname);
 // splitting the URL to get the manga name
-const mangaName: string = fullURL.split("#/read/")[1].split("/")[0];
+const mangaName: string = fullURL.split("/read/")[1].split("/")[0];
 
 // Refs
 const settingsModalRef = ref<InstanceType<typeof SettingsModal>>();
@@ -64,11 +64,11 @@ const settingsModalRef = ref<InstanceType<typeof SettingsModal>>();
 onMounted(async () => {
     chapterList.value = await Requests.getChapterList(mangaName);
     // activeChapter.value = chapterList.value[0] as string;
-    activeChapter.value = decodeURIComponent(window.location.hash).split("/").at(-1) as string;
+    activeChapter.value = decodeURIComponent(window.location.pathname).split("/").at(-1) as string;
 });
 
 window.addEventListener("hashchange", () => {
-    const hash: string = decodeURIComponent(window.location.hash);
+    const hash: string = decodeURIComponent(window.location.pathname);
     activeChapter.value = hash.split("/").at(-1) as string;
     // activeChapter.value = decodeURIComponent(window.location.hash).split("/").at(-1) as string;
 });

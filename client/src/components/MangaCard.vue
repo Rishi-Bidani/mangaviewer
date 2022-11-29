@@ -23,7 +23,7 @@ async function read() {
     const mangaName = props.name;
     const firstChapter: string = (await Requests.getChapterList(mangaName))[0];
     // window.location.href = "#/read/" + props.name;
-    window.location.href = `#/read/${mangaName}/${firstChapter}`;
+    window.location.href = `/read/${mangaName}/${firstChapter}`;
 }
 
 const name = ref(props.name);

@@ -13,7 +13,11 @@
                 <img :src="manga.img" :alt="manga.name" />
                 <div class="flex-column gap-1">
                     <h2 class="title">{{ manga.name }}</h2>
-                    <a :href="manga.link" class="button__download">download</a>
+                    <a
+                        :href="constructDownloadMangaLink(manga.name, manga.link)"
+                        class="button__download"
+                        >download</a
+                    >
                 </div>
             </article>
         </section>
@@ -41,6 +45,13 @@ async function searchManga(event: Event) {
     console.log(mangas);
 
     displayedMangas.value = mangas;
+}
+
+function constructDownloadMangaLink(name: string, link: string): string {
+    const url: URL = new URL(document.location.href);
+    url.search = new URLSearchParams({ link: encodeURIComponent(link) }).toString();
+    console.log(url);
+    return `${url.hash}/${name}/${url.search}`;
 }
 </script>
 

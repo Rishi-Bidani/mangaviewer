@@ -35,7 +35,7 @@ const props = defineProps<{
 function loadChapter(event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     const chapterName = selectElement.value;
-    window.location.href = `#/read/${props.mangaName}/${chapterName}`;
+    window.location.href = `/read/${props.mangaName}/${chapterName}`;
 }
 </script>
 <style scoped>

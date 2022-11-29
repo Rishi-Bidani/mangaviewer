@@ -5,7 +5,7 @@
             <div class="container flex-column gap-1 flex-center">
                 <h1>What do you want to read?</h1>
                 <input type="text" placeholder="One punch man" />
-                <a href="#/download" class="button">download</a>
+                <a href="/download" class="button">download</a>
             </div>
         </header>
 

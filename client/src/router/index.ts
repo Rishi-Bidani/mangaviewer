@@ -1,9 +1,10 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import { Router } from "vue-router";
 import Home from "../views/Download.vue";
 import HomePage from "../views/HomePage.vue";
 import Read from "../views/Read.vue";
 import PageNotFound from "../views/PageNotFound.vue";
+import DownloadManga from "../views/DownloadManga.vue";
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -15,6 +16,11 @@ const routes: Array<RouteRecordRaw> = [
         path: "/download",
         name: "Download",
         component: Home,
+    },
+    {
+        path: "/download/:manga",
+        name: "DownloadManga",
+        component: DownloadManga,
     },
     {
         path: "/read/:mangaName/:chapter",
@@ -37,7 +43,7 @@ const routes: Array<RouteRecordRaw> = [
 ];
 
 const router: Router = createRouter({
-    history: createWebHashHistory(),
+    history: createWebHistory(),
     routes,
 });
 

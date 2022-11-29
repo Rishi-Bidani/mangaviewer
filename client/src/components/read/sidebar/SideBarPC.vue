@@ -71,7 +71,7 @@ function loadChapter(event: Event) {
 
     Chapters.clearActive();
     listElement.classList.add("active");
-    window.location.href = `#/read/${props.mangaName}/${chapterName}`;
+    window.location.href = `/read/${props.mangaName}/${chapterName}`;
 }
 </script>
 
