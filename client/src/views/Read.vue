@@ -18,7 +18,15 @@
             </div>
         </section>
         <section class="settings hidden">
-            <input type="range" @change="changeWidth" value="{{imageWidth}}" />
+            <datalist id="imageWidthList">
+                <option value="0" label="0"></option>
+                <option value="25" label="25"></option>
+                <option value="50" label="50"></option>
+                <option value="75" label="75"></option>
+                <option value="80" label="80"></option>
+                <option value="100" label="100"></option>
+            </datalist>
+            <input type="range" :value="imageWidth" @change="changeWidth" list="imageWidthList" />
             <output id="outputWidth">{{ imageWidth }}%</output>
         </section>
     </section>
@@ -91,6 +99,7 @@ function changeWidth(event: Event): void {
     padding-inline: 1rem;
     display: flex;
     flex-flow: column;
+    /* filter: brightness(0.5); */
 }
 
 .image {
@@ -112,5 +121,17 @@ function changeWidth(event: Event): void {
 
 .settings input[type="range"] {
     width: 100%;
+    color: var(--primary-text-clr);
+}
+
+@media screen and (max-width: 500px) {
+    .main {
+        flex-flow: column;
+    }
+
+    .images {
+        --image-width: 100% !important;
+        align-items: center;
+    }
 }
 </style>

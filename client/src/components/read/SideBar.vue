@@ -1,13 +1,13 @@
 <template>
     <aside :key="Number(isMobile)">
-        <SideBarPC
+        <sidebar.PC
             v-if="!isMobile"
             :mangaName="mangaName"
             :chapterList="chapterList"
             :chapterName="chapterName"
             @show-settings="$emit('showSettings')"
         />
-        <SidedBarMobile
+        <sidebar.Mobile
             v-if="isMobile"
             :mangaName="mangaName"
             :chapterList="chapterList"
@@ -16,8 +16,9 @@
     </aside>
 </template>
 <script lang="ts" setup>
-import SidedBarMobile from "@/components/read/SideBarMobile.vue";
-import SideBarPC from "./SideBarPC.vue";
+// import SidedBarMobile from "@/components/read/sidebar/SideBarMobile.vue";
+// import SideBarPC from "./sidebar/SideBarPC.vue";
+import { sidebar } from "./sidebar/index";
 
 import { defineProps, ref, onMounted } from "vue";
 import { Ref } from "vue";

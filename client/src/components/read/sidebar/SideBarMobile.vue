@@ -51,8 +51,8 @@ function loadChapter(event: Event) {
 }
 </script>
 <style scoped>
-@import url("../../assets/css/colors.css");
-@import url("../../assets/css/utility.css");
+@import url("~@/assets/css/colors.css");
+@import url("~@/assets/css/utility.css");
 
 .navigation__mobile {
     height: 100%;

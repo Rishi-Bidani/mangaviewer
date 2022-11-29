@@ -1,12 +1,16 @@
 <template>
     <div class="navigation__pc">
         <header class="flex">
+            <a href="/" class="home icon__container">
+                <img src="@/assets/icons/home.svg" alt="home" class="icon" />
+            </a>
             <span class="title">
                 {{ mangaName }}
             </span>
-            <span class="settings">
+            <span class="settings icon__container">
                 <img
-                    src="../../assets/icons/gear.svg"
+                    class="icon"
+                    src="@/assets/icons/gear.svg"
                     alt="settings"
                     @click="$emit('showSettings')"
                 />
@@ -86,13 +90,25 @@ header {
     background-color: var(--secondary-clr);
 
     place-content: space-between;
+    gap: 0.5rem;
+
+    height: 2rem;
 }
 
-.settings {
+header > * {
+    align-self: center;
+}
+
+.title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.icon__container {
     height: 1.5rem;
 }
 
-.settings img {
+.icon {
     height: 100%;
     filter: invert(1);
     cursor: pointer;
