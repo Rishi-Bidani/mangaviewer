@@ -7,6 +7,7 @@
                 <button type="submit">🔍</button>
             </form>
         </header>
+        <Loading v-if="displayedMangas == null" class="flex flex-center-inline" />
         <section class="container__mangacards flex-column gap-1">
             <article v-for="manga in displayedMangas" :key="manga" class="manga flex gap-1">
                 <img :src="manga.img" :alt="manga.name" />
@@ -20,13 +21,15 @@
 </template>
 
 <script lang="ts" setup>
+import Loading from "@/components/Loading.vue";
+
 import Requests from "@/assets/js/requests";
 import { ref, onMounted } from "vue";
 
 // import types
 import { Ref } from "vue";
 
-const displayedMangas: Ref<any> = ref();
+const displayedMangas: Ref<any> = ref(null);
 onMounted(async () => {
     displayedMangas.value = await Requests.MangaClash().hotMangas();
 });
