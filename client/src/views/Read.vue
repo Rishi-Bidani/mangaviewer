@@ -9,8 +9,11 @@
         <section class="container__images">
             <div
                 class="images"
-                :data-width="imageWidth"
-                :style="'--image-width: ' + imageWidth + '%'"
+                :data-brighntess="imageBrightness"
+                :style="{
+                    '--image-width': imageWidth + '%',
+                    '--image-brightness': imageBrightness,
+                }"
             >
                 <img
                     class="image"
@@ -23,6 +26,8 @@
         </section>
         <SettingsModal
             :imageWidth="imageWidth"
+            :imageBrightness="imageBrightness"
+            :change-brightness="changeBrightness"
             :change-width="changeWidth"
             ref="settingsModalRef"
         />
@@ -42,7 +47,10 @@ import { Ref } from "vue";
 const chapterList: Ref<string[]> = ref([]);
 const activeChapter: Ref<string> = ref("");
 const chapterImages: Ref<string[]> = ref([]);
+
+// Settings
 const imageWidth: Ref<number> = ref(80);
+const imageBrightness: Ref<number> = ref(100);
 
 // Constants and computed
 const fullURL: string = decodeURIComponent(window.location.hash);
@@ -69,6 +77,14 @@ watch(activeChapter, async (newValue: string) => {
     chapterImages.value = await Requests.getChapterImages(mangaName, newValue);
 });
 
+// function setImageStyleVariables() {
+//     // return `--image-brightness: ${imageBrightness.value}; --image-width: ${imageWidth.value}%;`;
+//     return {
+//         "--image-brightness": `${imageBrightness.value}%`,
+//         "--image-width": `${imageWidth.value}%`,
+//     }
+// }
+
 function showSettings(): void {
     settingsModalRef.value?.showSettings();
 }
@@ -77,6 +93,12 @@ function changeWidth(event: Event): void {
     const inputTag = event.target as HTMLInputElement;
     const newWidth = Number(inputTag.value);
     imageWidth.value = newWidth;
+}
+
+function changeBrightness(event: Event): void {
+    const inputTag = event.target as HTMLInputElement;
+    const newBrightness = Number(inputTag.value);
+    imageBrightness.value = newBrightness;
 }
 </script>
 <style scoped>
@@ -99,7 +121,7 @@ function changeWidth(event: Event): void {
     padding-inline: 1rem;
     display: flex;
     flex-flow: column;
-    /* filter: brightness(0.5); */
+    filter: brightness(calc(var(--image-brightness) / 100));
 }
 
 .image {

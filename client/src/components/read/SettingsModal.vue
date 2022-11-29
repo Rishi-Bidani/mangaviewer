@@ -28,31 +28,6 @@
                 <option value="200" label="200"></option>
             </datalist>
             <section class="container__settings-list flex-column gap-1">
-                <!-- <div class="item__settings">
-                    <label for="imageWidth">Image Width</label>
-                    <input
-                        type="range"
-                        id="imageWidth"
-                        :value="imageWidth"
-                        @change="changeWidth"
-                        list="imageWidthList"
-                    />
-                    <output id="outputWidth">{{ imageWidth }}%</output>
-                </div> -->
-
-                <!-- <div class="item__settings">
-                    <label for="imageBrightness">Image Brightness</label>
-                    <input
-                        type="range"
-                        id="imageBrightness"
-                        min="0"
-                        max="200"
-                        value="100"
-                        list="imageBrightnessList"
-                    />
-                    <output id="outputBrightness">100%</output>
-                </div> -->
-
                 <fieldset>
                     <legend>image width</legend>
                     <input
@@ -74,8 +49,9 @@
                         max="200"
                         value="100"
                         list="imageBrightnessList"
+                        @change="changeBrightness"
                     />
-                    <output id="outputBrightness">100%</output>
+                    <output id="outputBrightness">{{ imageBrightness }}%</output>
                 </fieldset>
             </section>
         </div>
@@ -86,7 +62,9 @@ import { defineProps, defineExpose } from "vue";
 
 const props = defineProps<{
     imageWidth: number;
+    imageBrightness: number;
     changeWidth: (event: Event) => void;
+    changeBrightness: (event: Event) => void;
 }>();
 
 function showSettings() {
@@ -137,18 +115,6 @@ legend {
     text-transform: capitalize;
 }
 
-.item__settings {
-    display: grid;
-    grid-template-columns: 1.5fr 6fr 0.5fr;
-    gap: 0.5rem;
-    place-items: center;
-}
-
-/* .item__settings > * {
-    width: max-content;
-    white-space: nowrap;
-} */
-
 .header__settings {
     margin-bottom: 1rem;
     justify-content: space-between;
@@ -166,11 +132,11 @@ legend {
 @media screen and (max-width: 500px) {
     dialog:modal {
         width: 100vw;
+        padding: 1rem 0.5rem;
     }
 
-    .item__settings {
+    fieldset {
         grid-template-columns: 1fr;
-        place-items: start;
     }
 }
 </style>
