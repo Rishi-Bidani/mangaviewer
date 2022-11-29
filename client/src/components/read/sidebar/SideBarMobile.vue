@@ -15,18 +15,6 @@
         </div>
         <div class="fwd-btn">↪</div>
     </div>
-    <!-- <section class="chapter-list hidden">
-        <ol>
-            <li
-                v-for="chapter in chapterList"
-                :key="chapter"
-                :class="chapter == chapterName ? 'active' : ''"
-                :data-chapter-name="chapter"
-            >
-                {{ chapter }}
-            </li>
-        </ol>
-    </section> -->
 </template>
 <script lang="ts" setup>
 import { defineProps } from "vue";

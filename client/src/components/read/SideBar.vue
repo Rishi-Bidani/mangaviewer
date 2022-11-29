@@ -61,8 +61,8 @@ window.addEventListener("resize", () => {
 // }
 </script>
 <style scoped>
-@import url("../../assets/css/colors.css");
-@import url("../../assets/css/utility.css");
+@import url("~@/assets/css/colors.css");
+@import url("~@/assets/css/utility.css");
 
 aside {
     width: 18rem;

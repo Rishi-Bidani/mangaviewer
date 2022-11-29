@@ -17,7 +17,12 @@
                 />
             </div>
         </section>
-        <section class="settings hidden">
+        <SettingsModal
+            :imageWidth="imageWidth"
+            :change-width="changeWidth"
+            ref="settingsModalRef"
+        />
+        <!-- <section class="settings hidden">
             <datalist id="imageWidthList">
                 <option value="0" label="0"></option>
                 <option value="25" label="25"></option>
@@ -28,11 +33,12 @@
             </datalist>
             <input type="range" :value="imageWidth" @change="changeWidth" list="imageWidthList" />
             <output id="outputWidth">{{ imageWidth }}%</output>
-        </section>
+        </section> -->
     </section>
 </template>
 <script lang="ts" setup>
 import SideBar from "@/components/read/SideBar.vue";
+import SettingsModal from "@/components/read/SettingsModal.vue";
 
 import Requests from "@/assets/js/requests";
 import { ref, onMounted, watch } from "vue";
@@ -50,6 +56,9 @@ const imageWidth: Ref<number> = ref(80);
 const fullURL: string = decodeURIComponent(window.location.hash);
 // splitting the URL to get the manga name
 const mangaName: string = fullURL.split("#/read/")[1].split("/")[0];
+
+// Refs
+const settingsModalRef = ref<InstanceType<typeof SettingsModal>>();
 
 onMounted(async () => {
     chapterList.value = await Requests.getChapterList(mangaName);
@@ -69,8 +78,9 @@ watch(activeChapter, async (newValue: string) => {
 });
 
 function showSettings(): void {
-    const sectionSettings: HTMLElement = document.querySelector("section.settings") as HTMLElement;
-    sectionSettings?.classList.toggle("hidden");
+    // const sectionSettings: HTMLElement = document.querySelector("section.settings") as HTMLElement;
+    // sectionSettings?.classList.toggle("hidden");
+    settingsModalRef.value?.showSettings();
 }
 
 function changeWidth(event: Event): void {
