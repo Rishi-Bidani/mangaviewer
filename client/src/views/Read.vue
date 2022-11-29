@@ -29,6 +29,7 @@
             :imageBrightness="imageBrightness"
             :change-brightness="changeBrightness"
             :change-width="changeWidth"
+            :change-alignment="changeAlignment"
             ref="settingsModalRef"
         />
     </section>
@@ -77,14 +78,6 @@ watch(activeChapter, async (newValue: string) => {
     chapterImages.value = await Requests.getChapterImages(mangaName, newValue);
 });
 
-// function setImageStyleVariables() {
-//     // return `--image-brightness: ${imageBrightness.value}; --image-width: ${imageWidth.value}%;`;
-//     return {
-//         "--image-brightness": `${imageBrightness.value}%`,
-//         "--image-width": `${imageWidth.value}%`,
-//     }
-// }
-
 function showSettings(): void {
     settingsModalRef.value?.showSettings();
 }
@@ -99,6 +92,14 @@ function changeBrightness(event: Event): void {
     const inputTag = event.target as HTMLInputElement;
     const newBrightness = Number(inputTag.value);
     imageBrightness.value = newBrightness;
+}
+
+type Alignment = "start" | "end" | "center";
+
+function changeAlignment(event: Event): void {
+    const alignment: Alignment = (event.target as HTMLInputElement).value as Alignment;
+    const images = document.querySelector(".images") as HTMLDivElement;
+    images.style.alignItems = alignment;
 }
 </script>
 <style scoped>

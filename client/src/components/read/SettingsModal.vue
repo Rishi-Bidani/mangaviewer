@@ -28,7 +28,7 @@
                 <option value="200" label="200"></option>
             </datalist>
             <section class="container__settings-list flex-column gap-1">
-                <fieldset>
+                <fieldset class="settings__field settings__field-item">
                     <legend>image width</legend>
                     <input
                         type="range"
@@ -40,7 +40,7 @@
                     <output id="outputWidth">{{ imageWidth }}%</output>
                 </fieldset>
 
-                <fieldset>
+                <fieldset class="settings__field settings__field-item">
                     <legend>image brightness</legend>
                     <input
                         type="range"
@@ -52,6 +52,33 @@
                         @change="changeBrightness"
                     />
                     <output id="outputBrightness">{{ imageBrightness }}%</output>
+                </fieldset>
+
+                <fieldset class="flex gap-1 settings__field-item">
+                    <legend>image placement</legend>
+                    <label>
+                        <input
+                            type="radio"
+                            name="placement"
+                            checked
+                            value="start"
+                            @click="changeAlignment"
+                        />
+                        left
+                    </label>
+                    <label>
+                        <input
+                            type="radio"
+                            name="placement"
+                            value="center"
+                            @click="changeAlignment"
+                        />
+                        center
+                    </label>
+                    <label>
+                        <input type="radio" name="placement" value="end" @click="changeAlignment" />
+                        right
+                    </label>
                 </fieldset>
             </section>
         </div>
@@ -65,6 +92,7 @@ const props = defineProps<{
     imageBrightness: number;
     changeWidth: (event: Event) => void;
     changeBrightness: (event: Event) => void;
+    changeAlignment: (event: Event) => void;
 }>();
 
 function showSettings() {
@@ -105,6 +133,9 @@ input[type="range"] {
 fieldset {
     padding: 0.5rem;
     border: none;
+}
+
+.settings__field {
     display: grid;
     grid-template-columns: 1fr 2rem;
     gap: 1rem;

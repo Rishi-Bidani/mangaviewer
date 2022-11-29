@@ -13,28 +13,6 @@
         <section class="hero-container flex-column gap-1 flex-center">
             <manga-card v-for="manga in mangaNames" :key="manga" :name="manga" />
             <manga-card :name="'hello'" />
-            <manga-card
-                :name="'hello 2 lsnedgog rkgneprgvbn erkgnbverpg epernbgpewbrng pnregpewnrg wpkrnegpewrng pwkqkerngpre'"
-            />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
-            <manga-card :name="'hello 2'" />
         </section>
     </main>
 </template>
