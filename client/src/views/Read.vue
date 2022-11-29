@@ -7,7 +7,11 @@
             @show-settings="showSettings"
         />
         <section class="container__images">
-            <div class="images" :style="'--image-width: ' + imageWidth + '%'">
+            <div
+                class="images"
+                :data-width="imageWidth"
+                :style="'--image-width: ' + imageWidth + '%'"
+            >
                 <img
                     class="image"
                     v-for="image in chapterImages"
@@ -22,18 +26,6 @@
             :change-width="changeWidth"
             ref="settingsModalRef"
         />
-        <!-- <section class="settings hidden">
-            <datalist id="imageWidthList">
-                <option value="0" label="0"></option>
-                <option value="25" label="25"></option>
-                <option value="50" label="50"></option>
-                <option value="75" label="75"></option>
-                <option value="80" label="80"></option>
-                <option value="100" label="100"></option>
-            </datalist>
-            <input type="range" :value="imageWidth" @change="changeWidth" list="imageWidthList" />
-            <output id="outputWidth">{{ imageWidth }}%</output>
-        </section> -->
     </section>
 </template>
 <script lang="ts" setup>
@@ -78,13 +70,10 @@ watch(activeChapter, async (newValue: string) => {
 });
 
 function showSettings(): void {
-    // const sectionSettings: HTMLElement = document.querySelector("section.settings") as HTMLElement;
-    // sectionSettings?.classList.toggle("hidden");
     settingsModalRef.value?.showSettings();
 }
 
 function changeWidth(event: Event): void {
-    // const newWidth: number = Number((event.target as HTMLElement).value);
     const inputTag = event.target as HTMLInputElement;
     const newWidth = Number(inputTag.value);
     imageWidth.value = newWidth;
@@ -106,6 +95,7 @@ function changeWidth(event: Event): void {
 }
 
 .images {
+    /* --image-width: attr(data-width); */
     padding-inline: 1rem;
     display: flex;
     flex-flow: column;
