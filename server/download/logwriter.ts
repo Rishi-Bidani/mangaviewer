@@ -15,6 +15,7 @@ interface IMetaDataChapter {
     chapterLink: URL | undefined | null;
     images: (string | undefined)[];
     numberOfImages: number;
+    erroredImages: string[];
 }
 
 const BASE_MANGA_FOLDER = path.resolve("test");

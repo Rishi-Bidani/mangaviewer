@@ -14,10 +14,12 @@ class ImageFetchError extends Error {
 }
 
 class DownloadImageError extends Error {
-    constructor(url: string) {
-        super("");
+    url: URL;
+
+    constructor(message: string, url: URL) {
+        super(message);
         this.name = "DownloadImageError";
-        this.message = `Error downloading image: ${url}`;
+        this.url = url;
     }
 }
 

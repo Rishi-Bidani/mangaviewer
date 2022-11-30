@@ -4,179 +4,244 @@ import path from "path";
 import fetch from "node-fetch";
 
 import { MangaClash } from "./classnames.js";
-import { MetaData, IMetaDataChapter } from "./logwriter.js";
-import { ImageFetchError, DownloadImageError, MainFetchError } from "./downloaderrors.js";
+import { IMetaDataChapter, MetaData } from "./logwriter.js";
+import { DownloadImageError } from "./downloaderrors.js";
+const BASE_MANGA_FOLDER = path.resolve("test");
 
 interface IChapterLink {
     name: string | null;
     link: URL;
 }
 
-const BASE_MANGA_FOLDER = path.resolve("test");
+class Chapter {
+    public link: URL;
+    public name: string;
+    private folderPath: string;
+    private dom!: Document;
 
-async function getDom(link: URL): Promise<JSDOM> {
-    try {
-        const response = await fetch(link.toString());
-        const dom = new JSDOM(await response.text());
-        return dom;
-    } catch (error) {
-        throw new MainFetchError();
-    }
-}
-
-async function downloadCoverImage(dom: JSDOM): Promise<void> {
-    const coverImage = dom.window.document
-        .querySelector(MangaClash.coverImage)
-        ?.getAttribute("data-src");
-    console.log(coverImage);
-    if (coverImage) {
-        const extension = path.extname(coverImage);
-        const coverImagePath = path.resolve(BASE_MANGA_FOLDER, `cover${extension}`);
-        await downloadImageFromURL(coverImage, coverImagePath);
-    }
-}
-
-async function getChapterLinks(mangaLink: URL): Promise<IChapterLink[]> {
-    const chapterLinks: IChapterLink[] = [];
-
-    const dom = await getDom(mangaLink);
-
-    const domChapterLinks: HTMLAnchorElement[] = Array.from(
-        dom.window.document.querySelectorAll(MangaClash.chapterList)
-    );
-    domChapterLinks.forEach((a) => {
-        const linkObject: IChapterLink = {
-            name: a!.textContent!.trim(),
-            link: new URL(a.href),
-        };
-        chapterLinks.push(linkObject);
-    });
-
-    MetaData.root(dom);
-    downloadCoverImage(dom);
-    return chapterLinks;
-}
-
-async function getChapterImages(chapterLink: URL): Promise<(string | undefined)[]> {
-    const response = await fetch(chapterLink.toString());
-    const dom = new JSDOM(await response.text());
-    const chapterImages: HTMLImageElement[] = Array.from(
-        dom.window.document.querySelectorAll(MangaClash.mangaImage)
-    );
-    const chapterImageLinks: (string | undefined)[] = chapterImages.map((img: HTMLImageElement) => {
-        if (img) {
-            return img.dataset.src?.trim();
-        } else {
-            throw new ImageFetchError(img);
-        }
-    });
-
-    return chapterImageLinks;
-}
-
-async function downloadImageFromURL(url: string, path: string): Promise<void> {
-    const response = await fetch(url);
-    const buffer: NodeJS.ReadableStream | null = await response.body;
-
-    if (buffer === null) {
-        console.error('Could not download image from url: "' + url + '"');
-        throw new DownloadImageError(url);
+    // =====================================================================
+    constructor(link: URL, name: string) {
+        this.link = link;
+        this.name = name;
+        this.folderPath = path.join(BASE_MANGA_FOLDER, this.name);
     }
 
-    fs.writeFile(path, buffer);
-    console.log("Downloaded: " + url);
-}
+    public static async init(link: URL, name: string): Promise<Chapter> {
+        const chapter = new Chapter(link, name);
+        chapter.dom = await chapter.getDOM();
+        return chapter;
+    }
 
-async function downloadChapter(chapter: IChapterLink, pathname: string): Promise<void> {
-    try {
-        const chapterImages = getChapterImages(chapter.link);
-        // create chapter folder
-        const chapterFolder = path.join(pathname, chapter.name ?? "Chapter");
-        await fs.mkdir(chapterFolder);
-
-        // download images
-        const images = await chapterImages;
-        // create log file for the chapter
+    private async getDOM(): Promise<Document> {
         try {
-            const logObject: IMetaDataChapter = {
-                chapterName: chapter.name,
-                chapterLink: chapter.link,
-                images: images,
-                numberOfImages: images.length,
-            };
-            MetaData.chapter(logObject, chapterFolder);
-        } catch (error) {}
+            const response = await fetch(this.link.toString());
+            const dom: JSDOM = new JSDOM(await response.text());
+            return dom.window.document;
+        } catch (error) {
+            throw new Error("Error while fetching chapter");
+        }
+    }
+    // =====================================================================
+    private generateMetaDataObject() {
+        const metaDataObject: IMetaDataChapter = {
+            chapterName: this.name,
+            chapterLink: this.link,
+            images: this.images().map((img) => img.link),
+            numberOfImages: this.images().length,
+            erroredImages: [],
+        };
+        return metaDataObject;
+    }
 
-        const downloadPromises: Promise<void>[] = images.map((image, index) => {
-            if (image) {
-                const imageExtension = path.extname(image);
-                const imageName = `${index + 1}${imageExtension}`;
-                const downloadPath = path.join(chapterFolder, imageName);
-                return downloadImageFromURL(image, downloadPath);
-            } else {
-                throw Error("Image is undefined");
-            }
+    private images(): { link: string; name: string }[] {
+        const images = Array.from(this.dom.querySelectorAll(MangaClash.mangaImage), (img) => {
+            const link: string = img.getAttribute("data-src") as string;
+            const name: string = path.basename(link);
+            return { link, name };
         });
-        Promise.all(downloadPromises);
-    } catch (error) {
-        if (error instanceof ImageFetchError) {
-            console.error("Error in getChapterImages");
-            console.log(error.message);
-        } else if (error instanceof DownloadImageError) {
-            console.error("Error in downloadImageFromURL");
-            console.log(error);
+        return images;
+    }
+
+    public async download(): Promise<void> {}
+}
+
+class Download {
+    link: URL;
+    dom!: Document;
+    private baseFolder: string = BASE_MANGA_FOLDER;
+
+    /* --------------------------- Construction ---------------------------------- */
+
+    constructor(link: URL) {
+        this.link = link;
+    }
+
+    private getDom = async () => {
+        try {
+            const response = await fetch(this.link.toString());
+            this.dom = new JSDOM(await response.text()).window.document;
+        } catch (error) {
+            throw new Error("Unable to fetch the main page");
+        }
+    };
+
+    // static factory constructor
+    static async create(link: URL): Promise<Download> {
+        const downloader = new Download(link);
+        await downloader.getDom();
+        return downloader;
+    }
+
+    /* --------------------------- Getters ---------------------------------- */
+
+    get chapterList(): IChapterLink[] {
+        // Function to get the list of chapters
+        const chapterList: HTMLAnchorElement[] = Array.from(
+            this.dom.querySelectorAll(MangaClash.chapterList)
+        );
+        const chapterLinks: IChapterLink[] = chapterList.map((a) => {
+            const linkObject: IChapterLink = {
+                name: a.textContent!.trim(),
+                link: new URL(a.href),
+            };
+            return linkObject;
+        });
+
+        return chapterLinks;
+    }
+
+    /* --------------------------- Image download methods ---------------------------------- */
+
+    private async downloadImage(url: URL, path: string): Promise<void> {
+        // Function to download a single image
+        try {
+            const response = await fetch(url.toString());
+            const buffer: NodeJS.ReadableStream = (await response.body) as NodeJS.ReadableStream;
+            fs.writeFile(path, buffer);
+            console.log("Downloaded image: " + url);
+        } catch (error) {
+            throw new DownloadImageError("Unable to download image: ", url);
+        }
+    }
+
+    public async downloadCoverImage() {
+        // Function to download the cover image
+        try {
+            const coverImage: string = this.dom
+                .querySelector(MangaClash.coverImage)
+                ?.getAttribute("data-src") as string;
+
+            const imageName = await path.basename(coverImage);
+            const coverImagePath = path.resolve(this.baseFolder, imageName);
+            this.downloadImage(new URL(coverImage), coverImagePath);
+        } catch (error) {
+            console.error(error);
+            throw new Error("Unable to download cover image");
+        }
+    }
+
+    private async createChapterMetaData(
+        chapterName: string,
+        chapterLink: string,
+        folderpath: string
+    ) {
+        // Function to create the meta data file for a chapter
+        try {
+            const metaData: IMetaDataChapter = {
+                chapterName,
+                chapterLink,
+            };
+            const meta = MetaData.chapter(folderpath);
+            await meta.write();
+        } catch (error) {
+            console.error(error);
+            throw new Error("Unable to create chapter meta data file");
+        }
+    }
+
+    /**============================================================================= */
+    // Complete download methods
+    /**============================================================================= */
+
+    async chapter(chapter: IChapterLink, pathname: string) {
+        // Function to download a single chapter
+        /**
+         * 1. Get the list of images
+         * 2. Create the meta data log file
+         * 3. Download the images
+         */
+        try {
+            const chapterDOM = new JSDOM(await (await fetch(chapter.link.toString())).text()).window
+                .document;
+
+            const chapterFolder: string = path.join(
+                this.baseFolder,
+                pathname,
+                chapter.name as string
+            );
+            const imageList: HTMLImageElement[] = Array.from(
+                chapterDOM.querySelectorAll(MangaClash.mangaImage)
+            );
+
+            // Create folder and meta data file
+            fs.mkdir(chapterFolder, { recursive: true });
+
+            const downloadPromises = imageList.map((image, index) => {
+                const imageLink: string = image.getAttribute("data-src") as string;
+                const imageName = path.basename(imageLink);
+                const imagePath = path.join(chapterFolder, imageName);
+                return this.downloadImage(new URL(imageLink), imagePath);
+            });
+
+            return Promise.all(downloadPromises);
+        } catch (error) {
+            console.error(error);
+            if (error instanceof DownloadImageError) {
+                const { url } = error;
+                const;
+                // Add url to meta data under erroredDownloads
+            }
+            // throw new Error("Unable to download chapter");
+        }
+    }
+
+    async manga() {
+        // Function to download entire manga
+        /**
+         * 1. Get the list of chapters
+         * 2. Create the main meta data file
+         * 2. Download the cover image
+         * 3. For each chapter
+         *    3.1 Create a folder for the chapter
+         *    3.2 Create the meta data log file
+         *    3.3 Download the chapter images
+         */
+        try {
+            const chapterList = this.chapterList;
+            this.downloadCoverImage();
+        } catch (error) {
+            console.error(error);
+            throw new Error("Unable to download manga");
         }
     }
 }
 
-async function downloadManga(link: URL) {
-    const chapterLinks = await getChapterLinks(link);
-    const downloadPromises: Promise<void>[] = chapterLinks.map((chapter) => {
-        return downloadChapter(chapter, BASE_MANGA_FOLDER);
-    });
-    Promise.all(downloadPromises);
+// Tests
+async function testDownloadCoverImage() {
+    const mangaLink = "https://mangaclash.com/manga/the-descent-of-the-demonic-master/";
+    const download = await Download.create(new URL(mangaLink));
+    await download.downloadCoverImage();
 }
 
-// getChapterLinks(mangaLink).then(async (items) => {
-//     const firstLink = items[0].link;
-//     console.log(firstLink);
-//     try {
-//         const chapterImages = await getChapterImages(firstLink);
-//         console.log(await chapterImages);
-//     } catch (error) {
-//         if (error instanceof ImageFetchError) {
-//             console.log(error.message);
-//         }
-//     }
-// });
-
-// async function main() {
-//     // const mangaLink = "https://mangaclash.com/manga/the-descent-of-the-demonic-master/";
-//     const chapterLink =
-//         "https://mangaclash.com/manga/the-descent-of-the-demonic-master/chapter-141/";
-//     const downloadPath = path.join(BASE_MANGA_FOLDER);
-//     const chapter: IChapterLink = {
-//         name: "Chapter 141",
-//         link: chapterLink,
-//     };
-//     await downloadChapter(chapter, downloadPath);
-
-//     // await downloadManga(mangaLink);
-// }
-
-// await main();
-
-function testgetChapterLinks() {
-    const mangaLink = new URL("https://mangaclash.com/manga/the-descent-of-the-demonic-master/");
-    getChapterLinks(mangaLink).then((items) => {
-        // console.log(items);
-    });
+async function testDownloadChapter() {
+    const chapterLink = "https://mangaclash.com/manga/martial-peak/chapter-2826/";
+    const download = await Download.create(new URL(chapterLink));
+    const pathname = path.join("martial-peak", "chapter-2826");
+    await download.chapter({ name: "Chapter 2826", link: new URL(chapterLink) }, pathname);
 }
 
-function testDownloadManga() {
-    const mangaLink = new URL("https://mangaclash.com/manga/the-descent-of-the-demonic-master/");
-    downloadManga(mangaLink);
-}
+testDownloadChapter();
 
-// testgetChapterLinks();
-testDownloadManga();
+// testDownloadCoverImage();
+
+// export { downloadManga };
