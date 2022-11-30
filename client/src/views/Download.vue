@@ -48,10 +48,9 @@ async function searchManga(event: Event) {
 }
 
 function constructDownloadMangaLink(name: string, link: string): string {
-    const url: URL = new URL(document.location.href);
+    const url: URL = new URL(document.location.href + `/${name}`);
     url.search = new URLSearchParams({ link: encodeURIComponent(link) }).toString();
-    console.log(url);
-    return `${url.hash}/${name}/${url.search}`;
+    return url.href;
 }
 </script>
 

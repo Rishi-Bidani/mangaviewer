@@ -1,12 +1,4 @@
-interface IEndpoints {
-    mangas: string;
-    mangaData: string;
-    mangaChapters: string;
-    mangaChapterData: string;
-    mangaChapterImages: string;
-    mangaClashSearch: string;
-    mangaClashHotMangas: string;
-}
+import { IEndpoints, mangaDetails, IMangaClashRequests } from "./requeststypes";
 
 const BASE_URL = "http://localhost:5000";
 
@@ -19,6 +11,7 @@ const ENDPOINTS: IEndpoints = {
     // ------------------- MANGA CLASH --------------------------
     mangaClashSearch: "/mangaclash/search",
     mangaClashHotMangas: "/mangaclash/hot",
+    mangaClashMangaDetails: "/mangaclash/manga/:manga",
 };
 
 export default class Requests {
@@ -41,7 +34,7 @@ export default class Requests {
         return await response.json();
     }
 
-    static MangaClash() {
+    static MangaClash(): IMangaClashRequests {
         async function hotMangas() {
             const response = await fetch(BASE_URL + ENDPOINTS.mangaClashHotMangas);
             return await response.json();
@@ -50,7 +43,16 @@ export default class Requests {
         async function searchManga(mangaName: string) {
             const url = new URL(BASE_URL + ENDPOINTS.mangaClashSearch);
             url.searchParams.append("manga", mangaName);
-            console.log(url.toString());
+            const response = await fetch(url.toString());
+            return await response.json();
+        }
+
+        async function mangaDetails(mangaName: string, link: URL): Promise<mangaDetails> {
+            const url = new URL(
+                BASE_URL + ENDPOINTS.mangaClashMangaDetails.replace(":manga", mangaName)
+            );
+            url.searchParams.append("link", link.toString());
+
             const response = await fetch(url.toString());
             return await response.json();
         }
@@ -58,6 +60,7 @@ export default class Requests {
         return {
             hotMangas,
             searchManga,
+            mangaDetails,
         };
     }
 }
