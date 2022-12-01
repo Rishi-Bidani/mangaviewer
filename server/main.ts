@@ -12,7 +12,7 @@ const PORT: number = 5000;
 
 const localIpV4Address = require("local-ipv4-address");
 
-import { downloadManga } from "./download/download.js";
+// import { downloadManga } from "./_download/download.js";
 
 const BASE_FOLDER = await FileHandler.baseFolder;
 app.use(express.static(BASE_FOLDER));
@@ -21,7 +21,7 @@ const cors = require("cors");
 app.use(cors());
 
 import FileHandler from "./system/filesystem.js";
-import mangaclash from "./download/mangaclash.js";
+import mangaclash from "./_download/mangaclash.js";
 
 app.get("/", async (req: express.Request, res: express.Response) => {
     res.send("Hello world!");
