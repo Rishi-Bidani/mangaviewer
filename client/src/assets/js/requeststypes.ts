@@ -7,6 +7,8 @@ interface IEndpoints {
     mangaClashSearch: string;
     mangaClashHotMangas: string;
     mangaClashMangaDetails: string;
+    mangaDownloadManga: string;
+    mangaDownloadChapter: string;
 }
 
 interface IChapterDetails {
@@ -28,4 +30,9 @@ interface IMangaClashRequests {
     mangaDetails: (mangaName: string, link: URL) => Promise<mangaDetails>;
 }
 
-export { IEndpoints, IChapterDetails, mangaDetails, IMangaClashRequests };
+interface IDownloadManga {
+    downloadManga: (mangaName: string, mangaLink: URL) => Promise<string>;
+    downloadChapter: (chapterLink: string, chapterName: string) => Promise<string>;
+}
+
+export { IEndpoints, IChapterDetails, mangaDetails, IMangaClashRequests, IDownloadManga };

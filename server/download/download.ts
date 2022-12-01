@@ -180,4 +180,5 @@ async function testDownloadManga() {
 }
 
 // testDownloadChapter();
-testDownloadManga();
+// testDownloadManga();
+export { Chapter, Manga };

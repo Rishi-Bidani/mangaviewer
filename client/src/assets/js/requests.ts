@@ -1,4 +1,4 @@
-import { IEndpoints, mangaDetails, IMangaClashRequests } from "./requeststypes";
+import { IEndpoints, mangaDetails, IMangaClashRequests, IDownloadManga } from "./requeststypes";
 
 const BASE_URL = "http://localhost:5000";
 
@@ -12,6 +12,10 @@ const ENDPOINTS: IEndpoints = {
     mangaClashSearch: "/mangaclash/search",
     mangaClashHotMangas: "/mangaclash/hot",
     mangaClashMangaDetails: "/mangaclash/manga/:manga",
+
+    // ------------------ MANGA DOWNLOAD -------------------------
+    mangaDownloadManga: "/mangadownload/manga/:manga",
+    mangaDownloadChapter: "/mangadownload/chapter",
 };
 
 export default class Requests {
@@ -32,6 +36,32 @@ export default class Requests {
         );
         const response = await fetch(url.toString());
         return await response.json();
+    }
+
+    static download(): IDownloadManga {
+        // Download full manga
+        async function downloadManga(mangaName: string, mangaLink: URL) {
+            const url = new URL(
+                BASE_URL + ENDPOINTS.mangaDownloadManga.replace(":manga", mangaName)
+            );
+            url.searchParams.append("link", mangaLink.toString());
+            const response = await fetch(url.toString());
+            return await response.json();
+        }
+
+        // Download chapter
+        async function downloadChapter(chapterLink: string, chapterName: string) {
+            const url = new URL(BASE_URL + ENDPOINTS.mangaDownloadChapter);
+            url.searchParams.append("link", chapterLink);
+            url.searchParams.append("name", chapterName);
+            const response = await fetch(url.toString());
+            return await response.json();
+        }
+
+        return {
+            downloadManga,
+            downloadChapter,
+        };
     }
 
     static MangaClash(): IMangaClashRequests {

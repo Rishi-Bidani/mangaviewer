@@ -21,7 +21,7 @@
                     <p>{{ summary }}</p>
 
                     <!-- <button class="download">Download {{ chapters.length }} chapters</button> -->
-                    <Button :text="`Download ${chapters.length} chapters`" />
+                    <Button :text="`Download ${chapters.length} chapters`" @click="downloadManga" />
                 </article>
             </section>
         </div>
@@ -32,7 +32,12 @@
                 :key="'' + chapter.name + ' ' + chapter.link.toString()"
             >
                 <div class="chapter__title">{{ chapter.name }}</div>
-                <Button :text="'Download'" :data-link="chapter.link" @click="openMangaClashLink" />
+                <Button
+                    :text="'Download'"
+                    :data-name="chapter.name"
+                    :data-link="chapter.link"
+                    @click="downloadChapter"
+                />
             </div>
         </section>
     </div>
@@ -47,10 +52,18 @@ import { IChapterDetails } from "@/assets/js/requeststypes";
 import Button from "@/components/Button.vue";
 import Loading from "@/components/Loading.vue";
 
-function openMangaClashLink(event: Event) {
-    const link = (event.target as HTMLElement).dataset.link;
+// function openMangaClashLink(event: Event) {
+//     const link = (event.target as HTMLElement).dataset.link;
+//     if (link) {
+//         window.open(link, "_blank");
+//     }
+// }
+
+function downloadChapter(event: Event) {
+    const link: string = (event.target as HTMLElement).dataset.link as string;
+    const name: string = (event.target as HTMLElement).dataset.name as string;
     if (link) {
-        window.open(link, "_blank");
+        Requests.download().downloadChapter(link, name);
     }
 }
 
@@ -65,6 +78,10 @@ const score: Ref<number> = ref(-1);
 const genres: Ref<string[]> = ref([]);
 const chapters: Ref<IChapterDetails[]> = ref([]);
 const cover: Ref<string> = ref("");
+
+function downloadManga() {
+    Requests.download().downloadManga(mangaName, new URL(mangaClashLink));
+}
 
 onMounted(async () => {
     const details = await Requests.MangaClash().mangaDetails(mangaName, new URL(mangaClashLink));

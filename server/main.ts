@@ -13,6 +13,7 @@ const PORT: number = 5000;
 const localIpV4Address = require("local-ipv4-address");
 
 // import { downloadManga } from "./_download/download.js";
+import { Chapter } from "./download/download.js";
 
 const BASE_FOLDER = await FileHandler.baseFolder;
 app.use(express.static(BASE_FOLDER));
@@ -87,11 +88,24 @@ app.get("/mangaclash/manga/:manga", async (req: express.Request, res: express.Re
 });
 
 // download manga
-app.get("/mangadownload/manga/:manga", (req: express.Request, res: express.Response) => {
-    const mangaName: string = req.params.manga;
-    const mangaLink: string = req.query.link as string;
+// app.get("/mangadownload/manga/:manga", (req: express.Request, res: express.Response) => {
+//     const mangaName: string = req.params.manga;
+//     const mangaLink: string = req.query.link as string;
+//     try {
+//         downloadManga(new URL(mangaLink));
+//         res.send("success");
+//     } catch (error) {
+//         res.status(500).end();
+//     }
+// });
+
+// download chapter
+app.get("/mangadownload/chapter", async (req: express.Request, res: express.Response) => {
+    const chapterLink: string = req.query.link as string;
+    const chapterName: string = req.query.name as string;
     try {
-        downloadManga(new URL(mangaLink));
+        const chapter = await Chapter.init(new URL(chapterLink), chapterName);
+        await chapter.download();
         res.send("success");
     } catch (error) {
         res.status(500).end();
