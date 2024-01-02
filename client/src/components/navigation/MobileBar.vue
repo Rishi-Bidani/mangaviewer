@@ -6,7 +6,7 @@
                     <v-btn value="prv-chapter" icon="mdi-chevron-left" rounded="0" class="h-100" />
                 </v-col>
                 <v-col class="h-100">
-                    <div class="chapter-name">Chapter Name</div>
+                    <div class="chapter-name d-flex align-center">Chapter Name</div>
                 </v-col>
                 <v-col cols="auto" class="h-100">
                     <v-btn value="nxt-chapter" icon="mdi-chevron-right" rounded="0" class="h-100" />
