@@ -1,0 +1,24 @@
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: light dark;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* colors */
+/* :root {
+    --black: hsl(345, 18%, 4%, 1);
+    --cream: hsl(158, 24%, 93%, 1);
+    --raisin-black: hsl(259, 22%, 14%, 1);
+    --blue: hsl(198, 58%, 43%, 1);
+} */
+
+body {
+    background-color: var(--black);
+    color: var(--cream);
+}

@@ -1,7 +1,0 @@
-:root {
-    --primary-clr: hsl(251, 24%, 9%);
-    /* --secondary-clr: hsl(255, 30%, 18%); */
-    --secondary-clr: hsl(255, 30%, 15%);
-    --primary-text-clr: hsl(0, 0%, 96%);
-    --sidebar-active-clr: hsl(280, 90%, 40%);
-}
