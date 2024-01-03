@@ -51,7 +51,8 @@
     </v-dialog>
 </template>
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
+import { storage } from "@/assets/storage";
 
 const imageWidth = ref(100);
 const imageBrightness = ref(100);
@@ -59,18 +60,35 @@ const alignment = ref("center");
 
 const dialog = ref(false);
 
+function init() {
+    imageWidth.value = storage.get("imageWidth", storage.get("imageWidth", 100));
+    imageBrightness.value = storage.get("imageBrightness", storage.get("imageBrightness", 100));
+    alignment.value = storage.get("alignment", storage.get("alignment", "center"));
+
+    emits("updateImageWidth", imageWidth.value);
+    emits("updateImageBrightness", imageBrightness.value);
+    emits("updateAlignment", alignment.value);
+}
+
+onMounted(() => {
+    init();
+});
+
 const emits = defineEmits(["updateImageWidth", "updateImageBrightness", "updateAlignment"]);
 
 watch(imageWidth, () => {
     emits("updateImageWidth", imageWidth.value);
+    storage.set("imageWidth", imageWidth.value);
 });
 
 watch(imageBrightness, () => {
     emits("updateImageBrightness", imageBrightness.value);
+    storage.set("imageBrightness", imageBrightness.value);
 });
 
 watch(alignment, () => {
     emits("updateAlignment", alignment.value);
+    storage.set("alignment", alignment.value);
 });
 
 function showModal() {
