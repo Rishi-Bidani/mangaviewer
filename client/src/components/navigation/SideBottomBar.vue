@@ -1,6 +1,6 @@
 <template>
-    <MobileBar :chapter-list="props.chapterList" v-if="mobile" />
-    <PCBar :chapter-list="props.chapterList" v-else />
+    <MobileBar :active-chapter="activeChapter" :chapter-list="props.chapterList" v-if="mobile" />
+    <PCBar :active-chapter="activeChapter" :chapter-list="props.chapterList" v-else />
 </template>
 <script setup lang="ts">
 import { onMounted } from "vue";
@@ -14,6 +14,10 @@ const props = defineProps({
     chapterList: {
         type: Array<string>,
         default: () => [],
+    },
+    activeChapter: {
+        type: String,
+        default: "",
     },
 });
 

@@ -6,7 +6,13 @@
                 <v-divider thickness="4"></v-divider>
             </header>
             <div class="overflow-auto">
-                <v-list-item v-for="item in props.chapterList" link :title="item"></v-list-item>
+                <v-list-item
+                    v-for="item in props.chapterList"
+                    link
+                    :title="item"
+                    @click="() => $emit('chapter-click', item)"
+                    :active="item === props.activeChapter"
+                ></v-list-item>
             </div>
             <template v-slot:append>
                 <div class="pa-4">
@@ -19,7 +25,7 @@
     </v-container>
 </template>
 <script setup lang="ts">
-const emit = defineEmits(["settings-click"]);
+const emit = defineEmits(["settings-click", "chapter-click"]);
 
 const emitSettingsClick = () => {
     emit("settings-click");
@@ -29,6 +35,10 @@ const props = defineProps({
     chapterList: {
         type: Array<string>,
         default: () => [],
+    },
+    activeChapter: {
+        type: String,
+        default: "",
     },
 });
 </script>

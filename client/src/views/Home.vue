@@ -29,7 +29,6 @@ const allManagaNames = ref([]);
 const getMangaNames = async () => {
     const response = await fetch("/mangas");
     const data = await response.json();
-    console.log(data);
     mangaNames.value = data;
     allManagaNames.value = data;
 };
