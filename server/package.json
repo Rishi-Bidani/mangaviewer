@@ -6,7 +6,8 @@
     "license": "MIT",
     "scripts": {
         "start": "nodemon --watch **/*.ts --exec yarn ts-node ./main.ts",
-        "cleartest": "rm -rf ./test/*"
+        "cleartest": "rm -rf ./test/*",
+        "build": "tsc && cp -r ./data ../dist/server/data"
     },
     "dependencies": {
         "cors": "^2.8.5",

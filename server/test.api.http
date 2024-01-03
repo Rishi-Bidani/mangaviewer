@@ -1,13 +1,13 @@
 GET http://localhost:5000/mangas
 
 ###
-GET http://localhost:5000/mangas/claymore
+GET http://localhost:5000/mangas/a Returner’s Magic Should be Special/chapters
 
 ###
 GET http://localhost:5000/mangaclash/hot
 
 ###
-GET http://localhost:5000/mangas/claymore/chapters/1/images/
+GET http://localhost:5000/mangas/a Returner’s Magic Should be Special/chapters/Chapter 7 - Ch. 7/images/
 
 ###
 GET http://localhost:5000/mangaclash/manga/Martial%20Peak?link=https%3A%2F%2Fmangaclash.com%2Fmanga%2Fmartial-peak%2F

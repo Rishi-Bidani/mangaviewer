@@ -12,9 +12,6 @@ const PORT: number = 5000;
 
 const localIpV4Address = require("local-ipv4-address");
 
-// import { downloadManga } from "./_download/download.js";
-import { Chapter } from "./download/download.js";
-
 const BASE_FOLDER = await FileHandler.baseFolder;
 app.use(express.static(BASE_FOLDER));
 
@@ -22,7 +19,6 @@ const cors = require("cors");
 app.use(cors());
 
 import FileHandler from "./system/filesystem.js";
-import mangaclash from "./_download/mangaclash.js";
 
 app.get("/", async (req: express.Request, res: express.Response) => {
     res.send("Hello world!");
@@ -64,53 +60,28 @@ app.get(
 );
 
 // mangaclash stuff
-app.get("/mangaclash/hot", async (req: express.Request, res: express.Response) => {
-    const hotMangas = await mangaclash.getHotMangas();
-    res.send(hotMangas);
-});
+// app.get("/mangaclash/hot", async (req: express.Request, res: express.Response) => {
+//     const hotMangas = await mangaclash.getHotMangas();
+//     res.send(hotMangas);
+// });
 
-app.get("/mangaclash/search", async (req, res) => {
-    const mangaName = req.query.manga;
-    console.log(mangaName);
-    if (typeof mangaName !== "string") {
-        res.status(400).send("invalid manga name");
-    } else {
-        const searchResults = await mangaclash.searchManga(mangaName);
-        res.send(searchResults);
-    }
-});
-
-app.get("/mangaclash/manga/:manga", async (req: express.Request, res: express.Response) => {
-    const mangaName: string = req.params.manga;
-    const mangaLink: string = req.query.link as string;
-    const manga = await mangaclash.getMangaDetails(mangaName, mangaLink);
-    res.send(manga);
-});
-
-// download manga
-// app.get("/mangadownload/manga/:manga", (req: express.Request, res: express.Response) => {
-//     const mangaName: string = req.params.manga;
-//     const mangaLink: string = req.query.link as string;
-//     try {
-//         downloadManga(new URL(mangaLink));
-//         res.send("success");
-//     } catch (error) {
-//         res.status(500).end();
+// app.get("/mangaclash/search", async (req, res) => {
+//     const mangaName = req.query.manga;
+//     console.log(mangaName);
+//     if (typeof mangaName !== "string") {
+//         res.status(400).send("invalid manga name");
+//     } else {
+//         const searchResults = await mangaclash.searchManga(mangaName);
+//         res.send(searchResults);
 //     }
 // });
 
-// download chapter
-app.get("/mangadownload/chapter", async (req: express.Request, res: express.Response) => {
-    const chapterLink: string = req.query.link as string;
-    const chapterName: string = req.query.name as string;
-    try {
-        const chapter = await Chapter.init(new URL(chapterLink), chapterName);
-        await chapter.download();
-        res.send("success");
-    } catch (error) {
-        res.status(500).end();
-    }
-});
+// app.get("/mangaclash/manga/:manga", async (req: express.Request, res: express.Response) => {
+//     const mangaName: string = req.params.manga;
+//     const mangaLink: string = req.query.link as string;
+//     const manga = await mangaclash.getMangaDetails(mangaName, mangaLink);
+//     res.send(manga);
+// });
 
 http.listen(PORT, "0.0.0.0", () => {
     console.log("Website live on: " + `http://localhost:${PORT}`);
