@@ -37,13 +37,13 @@ function onScroll() {
     if (currentScrollPosition < 0) {
         return;
     }
+    const OFFSET = 60;
     // Stop executing this function if the difference between
     // current scroll position and last scroll position is less than some offset
-    if (Math.abs(currentScrollPosition - lastScrollPosition.value) < 60) {
+    if (Math.abs(currentScrollPosition - lastScrollPosition.value) < OFFSET) {
         return;
     }
     showNav.value = currentScrollPosition < lastScrollPosition.value;
-    console.log(showNav.value);
     lastScrollPosition.value = currentScrollPosition;
 }
 

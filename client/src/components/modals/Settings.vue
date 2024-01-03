@@ -36,7 +36,7 @@
             <v-card-text>
                 <div class="text-caption">Image Alignment</div>
                 <v-radio-group inline v-model="alignment">
-                    <div class="d-flex flex-row gc-2">
+                    <div class="d-flex flex-row gc-2 flex-wrap">
                         <v-radio name="alignment" label="Left" value="start"></v-radio>
                         <v-radio name="alignment" label="Center" value="center"></v-radio>
                         <v-radio name="alignment" label="Right" value="end"></v-radio>
@@ -106,6 +106,6 @@ defineExpose({
 </script>
 <style scoped>
 .modal-width {
-    width: min(90vw, 600px);
+    width: min(95vw, 600px);
 }
 </style>
