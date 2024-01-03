@@ -8,7 +8,7 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const app = express();
 const http = require("http").Server(app);
-const PORT: number = 5000;
+const PORT: number = (process.env.PORT as unknown as number) || 8080;
 
 const localIpV4Address = require("local-ipv4-address");
 

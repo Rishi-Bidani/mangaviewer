@@ -5,9 +5,10 @@
     "author": "Rishi",
     "license": "MIT",
     "scripts": {
-        "start": "nodemon --watch **/*.ts --exec yarn ts-node ./main.ts",
+        "dev": "nodemon --watch **/*.ts --exec yarn ts-node ./main.ts",
         "cleartest": "rm -rf ./test/*",
-        "build": "tsc && cp -r ./data ../dist/server/data"
+        "build": "tsc && cp -r ./data ../dist/server/data",
+        "start": "node ./main.js"
     },
     "dependencies": {
         "cors": "^2.8.5",

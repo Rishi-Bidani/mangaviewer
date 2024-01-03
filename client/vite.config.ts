@@ -14,7 +14,7 @@ export default defineConfig({
     server: {
         proxy: {
             "/mangas": {
-                target: "http://127.0.0.1:5000",
+                target: "http://127.0.0.1:8080",
                 changeOrigin: true,
             },
         },
