@@ -5,15 +5,19 @@ allows several features such as changing he image widths, aligning the images to
 It also allows you the change the brightness of the images, it works best for reducing the brightness when
 you are in a dark room.
 
-Furthermore, this application also has a feature to download mangas from the mangaclash website.
-The downloading is still a bit buggy, but will improve over time
+Furthermore, you can read the mangas on any device on the same network as the server. This is done by exposing the server to the network.
 
 Please check the TODO if you wish to contribute
 
+## Note
+
+The downloading feature has been removed from the project, please use my other [Manga Downloader](https://github.com/Rishi-Bidani/go-manga-downloader) project to download the mangas.
+
 ## TODO
+
 - [x] Convert the project to use vue and typescript
-- [ ] Be able to close the sidebar in the viewer
-- [ ] Be able to view the mangas on the phone -> make it available on local network
+- [x] Fix UI for phone and smaller devices
+- [x] Be able to view the mangas on the phone -> make it available on local network
 - [ ] Alert the client when a manga has finished downloading
 - [ ] Fix bugs in the downloader
 - [ ] Fix the project structure for the server, everything is in a single file at the moment
