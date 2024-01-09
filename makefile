@@ -5,6 +5,6 @@ build:
 	yarn --cwd ./dist/server install
 
 start: build
-	yarn --cwd ./client preview --host
-	yarn --cwd ./dist/server start
+	yarn --cwd ./client preview --host & yarn --cwd ./dist/server start
+	
 
