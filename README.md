@@ -28,5 +28,6 @@ The downloading feature has been removed from the project, please use my other [
 - [ ] Open last read chapter when opening the manga
 - [ ] Dockerise the project?
 
-![image](https://user-images.githubusercontent.com/64310471/205026439-2c1f9054-4958-492c-8afd-106bf289b96f.png)
-![image](https://user-images.githubusercontent.com/64310471/205026645-45b8407b-51df-4c94-ade5-c0aa7fc9f369.png)
+
+![image](https://github.com/Rishi-Bidani/mangaviewer/assets/64310471/91866776-6928-4835-8464-30947f5719f1)
+![image](https://github.com/Rishi-Bidani/mangaviewer/assets/64310471/aca24909-6545-4ce2-98cc-d08ab72c6241)
