@@ -11,7 +11,7 @@
                         v-for="mangaName in mangaNames"
                         :key="mangaName"
                         :mangaName="mangaName"
-                        :mangaLink="`/read/${mangaName}`"
+                        :mangaLink="`/#/read/${mangaName}`"
                     />
                 </v-container>
             </v-main>
@@ -27,7 +27,7 @@ const mangaNames = ref([]);
 const allManagaNames = ref([]);
 
 const getMangaNames = async () => {
-    const response = await fetch("/mangas");
+    const response = await fetch("/api/mangas");
     const data = await response.json();
     mangaNames.value = data;
     allManagaNames.value = data;

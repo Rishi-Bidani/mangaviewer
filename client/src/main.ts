@@ -1,5 +1,6 @@
 import { createApp } from "vue";
-import { createRouter, createWebHistory } from "vue-router";
+// createWebHistory
+import { createRouter, createWebHashHistory } from "vue-router";
 
 import "./style.css";
 
@@ -10,7 +11,7 @@ import App from "./App.vue";
 const app = createApp(App);
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(),
     routes: [
         { path: "/", component: Home },
         { path: "/read/:mangaName", component: Read },

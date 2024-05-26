@@ -43,9 +43,9 @@ const chapterImages = ref([]);
 
 onMounted(async () => {
     // get manga name from url
-    mangaName.value = window.location.pathname.split("/")[2];
+    mangaName.value = window.location.href.split("/")[5];
     // get chapter list from server
-    const chapterListURL = `/mangas/${mangaName.value}/chapters`;
+    const chapterListURL = `/api/mangas/${mangaName.value}/chapters`;
 
     const response = await fetch(chapterListURL);
     const data = await response.json();
@@ -58,7 +58,7 @@ onMounted(async () => {
 });
 
 async function changeChapter(chapter: string) {
-    const chapterURL = `/mangas/${mangaName.value}/chapters/${chapter}/images`;
+    const chapterURL = `/api/mangas/${mangaName.value}/chapters/${chapter}/images`;
     const response = await fetch(chapterURL);
     const data = await response.json();
     chapterImages.value = data;
