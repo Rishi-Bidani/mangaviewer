@@ -5,7 +5,7 @@
     "author": "Rishi",
     "license": "MIT",
     "scripts": {
-        "dev": "nodemon --watch **/*.ts --exec yarn ts-node ./main.ts",
+        "dev": "nodemon ./main.ts",
         "cleartest": "rm -rf ./test/*",
         "build": "tsc && cp -r ./data ../dist/server/data",
         "start": "node ./main.js"

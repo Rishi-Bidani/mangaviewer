@@ -1,7 +1,6 @@
 import express from "express";
+import FileHandler from "./system/filesystem.js";
 import path from "path";
-
-import { orderBy } from "natural-orderby";
 
 // require for modules
 import { createRequire } from "module";
@@ -10,54 +9,23 @@ const app = express();
 const http = require("http").Server(app);
 const PORT: number = (process.env.PORT as unknown as number) || 8080;
 
-const localIpV4Address = require("local-ipv4-address");
-
 const BASE_FOLDER = await FileHandler.baseFolder;
-app.use(express.static(BASE_FOLDER));
+app.use("/images", express.static(BASE_FOLDER));
+
+// make built files available
+const builtWebpageBinaries = path.join("dist", "client");
+app.use(express.static(builtWebpageBinaries));
 
 const cors = require("cors");
 app.use(cors());
 
-import FileHandler from "./system/filesystem.js";
-
 app.get("/", async (req: express.Request, res: express.Response) => {
-    res.send("Hello world!");
+    // res.send("Hello world!");
+    res.sendFile(path.join(builtWebpageBinaries, "index.html"));
 });
 
-app.get("/mangas", async (req: express.Request, res: express.Response) => {
-    // Return the list of all mangas
-    const mangas = FileHandler.getMangaList();
-    res.json(await mangas);
-});
-
-app.get("/mangas/:mangaName/chapters", async (req: express.Request, res: express.Response) => {
-    // Return the list of all the chapters of the manga
-    const mangaName = req.params.mangaName;
-    const chapterList = orderBy(await FileHandler.getChapterList(mangaName));
-    res.send(chapterList);
-});
-
-app.get(
-    "/mangas/:manga/chapters/:chapter/images",
-    async (req: express.Request, res: express.Response) => {
-        try {
-            // Return the list of all the images of the chapter
-            const manga = req.params.manga;
-            const chapter = req.params.chapter;
-            const ipAddress = await localIpV4Address();
-            const images = orderBy(await FileHandler.getChapterImages(manga, chapter)).map(
-                (image) => {
-                    // return `http://localhost:${PORT}/${image}`;
-                    return `http://${ipAddress}:${PORT}/${image}`;
-                }
-            );
-            res.send(images);
-        } catch (error: any) {
-            console.log(error);
-            res.status(400).send(error.code);
-        }
-    }
-);
+import apiRoutes from "./api.js";
+app.use("/api", apiRoutes);
 
 // mangaclash stuff
 // app.get("/mangaclash/hot", async (req: express.Request, res: express.Response) => {
