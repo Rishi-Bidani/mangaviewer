@@ -1,4 +1,5 @@
 build:
+	rm -rf ./dist/*
 	yarn --cwd ./client build
 	yarn --cwd ./server build
 	cp ./server/package.json ./dist/server/
