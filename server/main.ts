@@ -1,6 +1,8 @@
 import express from "express";
 import FileHandler from "./system/filesystem.js";
-import path from "path";
+import getIPAddresses from "./system/getip.js";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 
 // require for modules
 import { createRequire } from "module";
@@ -9,27 +11,14 @@ const app = express();
 const http = require("http").Server(app);
 const PORT: number = (process.env.PORT as unknown as number) || 8080;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const BASE_FOLDER = await FileHandler.baseFolder;
 app.use("/images", express.static(BASE_FOLDER));
 
-function getIPAddresses() {
-    var ipAddresses = [];
-
-    var interfaces = require("os").networkInterfaces();
-    for (var devName in interfaces) {
-        var iface = interfaces[devName];
-        for (var i = 0; i < iface.length; i++) {
-            var alias = iface[i];
-            if (alias.family === "IPv4" && alias.address !== "127.0.0.1" && !alias.internal) {
-                ipAddresses.push(alias.address);
-            }
-        }
-    }
-    return ipAddresses;
-}
-
 // make built files available
-const builtWebpageBinaries = path.join("dist", "client");
+const builtWebpageBinaries = path.join(__dirname, "..", "client");
 app.use(express.static(builtWebpageBinaries));
 
 const cors = require("cors");
@@ -37,7 +26,7 @@ app.use(cors());
 
 app.get("/", async (req: express.Request, res: express.Response) => {
     // res.send("Hello world!");
-    res.sendFile(path.join(builtWebpageBinaries, "index.html"));
+    res.sendFile(path.resolve(path.join(builtWebpageBinaries, "index.html")));
 });
 
 import apiRoutes from "./api.js";

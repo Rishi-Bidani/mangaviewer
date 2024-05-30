@@ -16,3 +16,7 @@ build:
 start: build
 	 node ./dist/server/main.js
 
+
+build-exec: build
+	rm -rf /d/executables/mangaviewer
+	cp  ./dist/ /d/executables/mangaviewer -r
