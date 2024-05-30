@@ -12,6 +12,22 @@ const PORT: number = (process.env.PORT as unknown as number) || 8080;
 const BASE_FOLDER = await FileHandler.baseFolder;
 app.use("/images", express.static(BASE_FOLDER));
 
+function getIPAddresses() {
+    var ipAddresses = [];
+
+    var interfaces = require("os").networkInterfaces();
+    for (var devName in interfaces) {
+        var iface = interfaces[devName];
+        for (var i = 0; i < iface.length; i++) {
+            var alias = iface[i];
+            if (alias.family === "IPv4" && alias.address !== "127.0.0.1" && !alias.internal) {
+                ipAddresses.push(alias.address);
+            }
+        }
+    }
+    return ipAddresses;
+}
+
 // make built files available
 const builtWebpageBinaries = path.join("dist", "client");
 app.use(express.static(builtWebpageBinaries));
@@ -52,5 +68,11 @@ app.use("/api", apiRoutes);
 // });
 
 http.listen(PORT, "0.0.0.0", () => {
-    console.log("Website live on: " + `http://localhost:${PORT}`);
+    const ipAddress = getIPAddresses();
+
+    console.log("Website live on: ");
+    ipAddress.forEach((ip) => {
+        console.log(`   - http://${ip}:${PORT}`);
+    });
+    console.log("Generally on the address starting with 192.X.X.X");
 });
