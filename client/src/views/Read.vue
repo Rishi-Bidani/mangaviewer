@@ -13,7 +13,7 @@
                 <div class="image-container d-flex flex-column" ref="imageContainer">
                     <img
                         v-for="image in chapterImages"
-                        class="mx-5 my-2"
+                        class="mx-5"
                         :src="image"
                         :key="image"
                         alt=""
@@ -23,9 +23,11 @@
         </v-main>
         <Settings
             ref="settingsModal"
+            :activeChapter="activeChapter"
             @updateImageWidth="changeImageWidth"
             @updateImageBrightness="changeImageBrightness"
             @updateAlignment="changeImageAlignment"
+            @updateImageSpacing="changeImageSpacing"
         />
     </v-app>
 </template>
@@ -34,6 +36,7 @@ import SideBottomBar from "@components/navigation/SideBottomBar.vue";
 import Settings from "@components/modals/Settings.vue";
 
 import { ref, onMounted } from "vue";
+import { storage } from "@/assets/storage";
 
 const mangaName = ref("");
 const chapterList = ref([]);
@@ -52,7 +55,11 @@ onMounted(async () => {
     chapterList.value = data;
 
     // set first chapter as default
-    const firstChapter = chapterList.value[0];
+    const bookmarkedChapter = chapterNameToIndex(
+        chapterList.value,
+        storage.get("bookmarkedChapter", "")
+    );
+    const firstChapter = chapterList.value[bookmarkedChapter];
     activeChapter.value = firstChapter;
     await changeChapter(firstChapter);
 });
@@ -63,6 +70,14 @@ async function changeChapter(chapter: string) {
     const data = await response.json();
     chapterImages.value = data;
     activeChapter.value = chapter;
+}
+
+function chapterNameToIndex(chapterList: string[], chapter: string) {
+    if (!chapterList || !chapter) {
+        return 0;
+    }
+    const index = chapterList.indexOf(chapter);
+    return index > -1 ? index : 0;
 }
 
 async function previousChapter() {
@@ -103,6 +118,10 @@ function changeImageBrightness(brightness: number) {
 
 function changeImageAlignment(alignment: string) {
     mainContainer.value!.style.justifyContent = alignment;
+}
+
+function changeImageSpacing(spacing: number) {
+    imageContainer.value!.style.gap = `${spacing}px`;
 }
 
 // const chapterList = [

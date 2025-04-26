@@ -2,7 +2,14 @@
     <v-container>
         <v-navigation-drawer :width="245" class="d-flex flex-column">
             <header class="navbar-header">
-                <v-list-item title="Manga Viewer"></v-list-item>
+                <v-list-item>
+                    <v-list-item-title class="text-h5" style="cursor: pointer" @click="sendToHome">
+                        Manga Viewer
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="text-caption">
+                        Read your favorite manga
+                    </v-list-item-subtitle>
+                </v-list-item>
                 <v-divider thickness="4"></v-divider>
             </header>
             <div class="overflow-auto">
@@ -30,6 +37,10 @@ const emit = defineEmits(["settings-click", "chapter-click"]);
 const emitSettingsClick = () => {
     emit("settings-click");
 };
+
+function sendToHome() {
+    window.location.href = "/#";
+}
 
 const props = defineProps({
     chapterList: {
