@@ -4,6 +4,8 @@ import getIPAddresses from "./system/getip.js";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 
+// process.title = "manga-viewer";
+
 // require for modules
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -31,30 +33,6 @@ app.get("/", async (req: express.Request, res: express.Response) => {
 
 import apiRoutes from "./api.js";
 app.use("/api", apiRoutes);
-
-// mangaclash stuff
-// app.get("/mangaclash/hot", async (req: express.Request, res: express.Response) => {
-//     const hotMangas = await mangaclash.getHotMangas();
-//     res.send(hotMangas);
-// });
-
-// app.get("/mangaclash/search", async (req, res) => {
-//     const mangaName = req.query.manga;
-//     console.log(mangaName);
-//     if (typeof mangaName !== "string") {
-//         res.status(400).send("invalid manga name");
-//     } else {
-//         const searchResults = await mangaclash.searchManga(mangaName);
-//         res.send(searchResults);
-//     }
-// });
-
-// app.get("/mangaclash/manga/:manga", async (req: express.Request, res: express.Response) => {
-//     const mangaName: string = req.params.manga;
-//     const mangaLink: string = req.query.link as string;
-//     const manga = await mangaclash.getMangaDetails(mangaName, mangaLink);
-//     res.send(manga);
-// });
 
 http.listen(PORT, "0.0.0.0", () => {
     const ipAddress = getIPAddresses();

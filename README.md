@@ -1,33 +1,50 @@
 # MangaViewer
 
-This application allows you to view your downloaded mangas using my custom manga viewer on PC which
-allows several features such as changing he image widths, aligning the images to the left, right of centered,
-It also allows you the change the brightness of the images, it works best for reducing the brightness when
-you are in a dark room.
+MangaViewer is a sleek and customizable manga reading web app for your local collection. Designed for PC and mobile,
+it lets you comfortably enjoy your downloaded manga with features tailored for a smooth and flexible reading experience.
 
-Furthermore, you can read the mangas on any device on the same network as the server. This is done by exposing the server to the network.
+## Features ✨
+
+-   [x] Adjustable image width and alignment (left, center, right)
+-   [x] Image brightness control
+-   [x] Adjustable spacing between images
+-   [x] Bookmarking albeit not persistent (localStorage)
 
 Please check the TODO if you wish to contribute
 
 ## Note
 
-The downloading feature has been removed from the project, please use my other [Manga Downloader](https://github.com/Rishi-Bidani/go-manga-downloader) project to download the mangas.`
+This project doesn't support downloading manga. It is primarily designed for reading manga that you
+have already downloaded. I have manga downloading projects however, they haven't been maintained for a while.
 
-## Build the project yourself
+## Getting Started 🚀
 
-1. Make sure you have nodejs, yarn and the make command installed
-2. Clone the project
-3. Edit the `settings.json` file in `./server/data` to point to the directory where you have downloaded your mangas
-4. Run `make start` to build the project and start the server or `make build` to just build the project
+1. Install Node.js, Yarn, and ensure the `make` command is available.
+2. Clone the repository:
+
+```bash
+git clone https://github.com/Rishi-Bidani/mangaviewer.git
+```
+
+3. Update the settings.json file in ./server/data to point to your manga folder.
+
+```json
+{
+    "BASE_MANGA_FOLDER": ["D:\\", "manga"], // The base folder where your manga is stored. The app will look for the manga in this folder.
+    "IGNORE_LIST": ["kenja no mago"] // The list of (sub)folders to ignore.
+}
+```
+
+4. `make build-exec` will run everything but maken sure to update `GLOBAL_EXECUTABLE_FOLDER` in the makefile.
 
 ## TODO
 
-- [x] Convert the project to use vue and typescript
-- [x] Fix UI for phone and smaller devices
-- [x] Be able to view the mangas on the phone -> make it available on local network
-- [ ] Open last read chapter when opening the manga
-- [ ] Dockerise the project?
+-   [ ] Add persistent bookmarks
+-   [ ] Sync with MAL
 
+## Screenshots 📸
 
 ![image](https://github.com/Rishi-Bidani/mangaviewer/assets/64310471/91866776-6928-4835-8464-30947f5719f1)
 ![image](https://github.com/Rishi-Bidani/mangaviewer/assets/64310471/aca24909-6545-4ce2-98cc-d08ab72c6241)
+
+Feel free to fork, star ⭐, or contribute! Have ideas? Create an issue or PR!
