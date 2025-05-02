@@ -12,11 +12,12 @@
             <div ref="mainContainer" class="d-flex image-container">
                 <div class="image-container d-flex flex-column" ref="imageContainer">
                     <img
-                        v-for="image in chapterImages"
+                        v-for="(image, index) in chapterImages"
                         class="mx-5"
                         :src="image"
                         :key="image"
                         alt=""
+                        :loading="index > 10 ? 'lazy' : 'eager'"
                     />
                 </div>
             </div>
