@@ -45,6 +45,7 @@ git clone https://github.com/Rishi-Bidani/mangaviewer.git
 ## Screenshots 📸
 
 ![image](https://github.com/Rishi-Bidani/mangaviewer/assets/64310471/91866776-6928-4835-8464-30947f5719f1)
-![image](https://github.com/Rishi-Bidani/mangaviewer/assets/64310471/aca24909-6545-4ce2-98cc-d08ab72c6241)
+![image](https://github.com/user-attachments/assets/b4fcc4aa-8476-4fb4-81b9-59b02cb2f57e)
+
 
 Feel free to fork, star ⭐, or contribute! Have ideas? Create an issue or PR!
