@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        // server
+        "biomejs.biome",
+        // client
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+    ]
+}

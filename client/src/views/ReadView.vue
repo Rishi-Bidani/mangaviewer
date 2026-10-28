@@ -21,8 +21,9 @@
                 </div>
             </div>
         </v-main>
-        <Settings
+        <SettingsModal
             ref="settingsModal"
+            :mangaName="mangaName"
             :activeChapter="activeChapter"
             @updateImageWidth="changeImageWidth"
             @updateImageBrightness="changeImageBrightness"
@@ -33,23 +34,23 @@
 </template>
 <script setup lang="ts">
 import SideBottomBar from "@components/navigation/SideBottomBar.vue";
-import Settings from "@components/modals/Settings.vue";
+import SettingsModal from "@components/modals/SettingsModal.vue";
 
 import { ref, onMounted } from "vue";
-import { storage } from "@/assets/storage";
+import { useRoute } from "vue-router";
+import { storage, bookmarkKey } from "@/assets/storage";
 import { attempt } from "@/assets/utility";
 
-const mangaName = ref("");
+// router params are already decoded, so encode them again when building api urls
+const mangaName = useRoute().params.mangaName as string;
 const chapterList = ref([]);
 const activeChapter = ref("");
 
 const chapterImages = ref([]);
 
 onMounted(async () => {
-    // get manga name from url
-    mangaName.value = window.location.href.split("/")[5];
     // get chapter list from server
-    const chapterListURL = `/api/mangas/${mangaName.value}/chapters`;
+    const chapterListURL = `/api/mangas/${encodeURIComponent(mangaName)}/chapters`;
 
     const response = await fetch(chapterListURL);
     const data = await response.json();
@@ -58,7 +59,7 @@ onMounted(async () => {
     // set first chapter as default
     const bookmarkedChapter = chapterNameToIndex(
         chapterList.value,
-        storage.get("bookmarkedChapter", "")
+        storage.get(bookmarkKey(mangaName), "")
     );
     const firstChapter = chapterList.value[bookmarkedChapter];
     activeChapter.value = firstChapter;
@@ -66,7 +67,9 @@ onMounted(async () => {
 });
 
 async function changeChapter(chapter: string) {
-    const chapterURL = `/api/mangas/${mangaName.value}/chapters/${chapter}/images`;
+    const chapterURL = `/api/mangas/${encodeURIComponent(mangaName)}/chapters/${encodeURIComponent(
+        chapter
+    )}/images`;
     const response = await attempt(fetch(chapterURL));
     if ("error" in response) {
         console.error("Error fetching chapter images:", response);
@@ -106,7 +109,7 @@ async function nextChapter() {
 
 const imageContainer = ref<HTMLElement | null>(null);
 const mainContainer = ref<HTMLElement | null>(null);
-const settingsModal = ref<InstanceType<typeof Settings>>();
+const settingsModal = ref<InstanceType<typeof SettingsModal>>();
 
 function showSettings() {
     settingsModal.value?.showModal();

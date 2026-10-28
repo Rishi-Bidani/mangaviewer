@@ -4,8 +4,8 @@ import { createRouter, createWebHashHistory } from "vue-router";
 
 import "./style.css";
 
-import Home from "./views/Home.vue";
-import Read from "./views/Read.vue";
+import HomeView from "./views/HomeView.vue";
+import ReadView from "./views/ReadView.vue";
 import App from "./App.vue";
 
 const app = createApp(App);
@@ -13,8 +13,8 @@ const app = createApp(App);
 const router = createRouter({
     history: createWebHashHistory(),
     routes: [
-        { path: "/", component: Home },
-        { path: "/read/:mangaName", component: Read },
+        { path: "/", component: HomeView },
+        { path: "/read/:mangaName", component: ReadView },
     ],
 });
 

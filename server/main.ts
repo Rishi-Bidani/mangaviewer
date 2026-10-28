@@ -1,16 +1,17 @@
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import express from "express";
-import FileHandler from "./system/filesystem.js";
-import getIPAddresses from "./system/getip.js";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
+import FileHandler from "./system/filesystem.ts";
+import getIPAddresses from "./system/getip.ts";
 
 // process.title = "manga-viewer";
 
 // require for modules
-import { createRequire } from "module";
+import { createRequire } from "node:module";
+
 const require = createRequire(import.meta.url);
 const app = express();
-const http = require("http").Server(app);
+const http = require("node:http").Server(app);
 const PORT: number = (process.env.PORT as unknown as number) || 8080;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,12 +27,13 @@ app.use(express.static(builtWebpageBinaries));
 const cors = require("cors");
 app.use(cors());
 
-app.get("/", async (req: express.Request, res: express.Response) => {
+app.get("/", async (_req: express.Request, res: express.Response) => {
     // res.send("Hello world!");
     res.sendFile(path.resolve(path.join(builtWebpageBinaries, "index.html")));
 });
 
-import apiRoutes from "./api.js";
+import apiRoutes from "./api.ts";
+
 app.use("/api", apiRoutes);
 
 http.listen(PORT, "0.0.0.0", () => {

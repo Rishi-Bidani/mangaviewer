@@ -1,0 +1,39 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // express api on :8080, node runs the .ts files directly and restarts on changes
+            "name": "Server",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/server",
+            "program": "${workspaceFolder}/server/main.ts",
+            "runtimeArgs": ["--watch"],
+            "env": {
+                "PORT": "8080"
+            },
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "console": "integratedTerminal"
+        },
+        {
+            // vite dev server on :5173, proxies /api and /images to the server
+            "name": "Client",
+            "type": "node-terminal",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/client",
+            "command": "yarn dev",
+            "serverReadyAction": {
+                "pattern": "Local:",
+                "uriFormat": "http://localhost:5173",
+                "action": "openExternally"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Mangaviewer (dev)",
+            "configurations": ["Server", "Client"],
+            "stopAll": true
+        }
+    ]
+}

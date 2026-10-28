@@ -1,0 +1,11 @@
+services:
+  mangaviewer:
+    build: .
+    image: mangaviewer:latest
+    container_name: mangaviewer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # change the left side to wherever your manga lives on the host
+      - /mnt/manga:/manga:ro

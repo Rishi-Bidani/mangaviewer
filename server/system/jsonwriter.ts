@@ -1,12 +1,12 @@
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
 
 class JSONWriter {
-    static async write(obj: any, filepath: string) {
+    static async write(obj: unknown, filepath: string) {
         // Function to write a JSON file
         try {
             await fs.writeFile(filepath, JSON.stringify(obj, null, 4));
-        } catch (error) {
-            console.error("Error while writing to log file" + filepath + obj);
+        } catch {
+            console.error(`Error while writing to log file${filepath}${obj}`);
         }
     }
 
@@ -16,8 +16,8 @@ class JSONWriter {
             const data = await JSON.parse(await fs.readFile(filepath, "utf-8"));
             data.erroredImages.push(image);
             await JSONWriter.write(data, filepath);
-        } catch (error) {
-            console.error("Error while writing to log file" + filepath + image);
+        } catch {
+            console.error(`Error while writing to log file${filepath}${image}`);
         }
     }
 
@@ -26,8 +26,8 @@ class JSONWriter {
         try {
             const data = await fs.readFile(filepath, "utf-8");
             return JSON.parse(data);
-        } catch (error) {
-            console.error("Error while reading log file" + filepath);
+        } catch {
+            console.error(`Error while reading log file${filepath}`);
         }
     }
 }

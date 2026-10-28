@@ -91,7 +91,7 @@
 </template>
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
-import { storage } from "@/assets/storage";
+import { storage, bookmarkKey } from "@/assets/storage";
 
 const imageWidth = ref(100);
 const imageBrightness = ref(100);
@@ -102,6 +102,10 @@ const bookmarkedChapter = ref("");
 const dialog = ref(false);
 
 const props = defineProps({
+    mangaName: {
+        type: String,
+        required: true,
+    },
     activeChapter: {
         type: String,
         default: "",
@@ -113,10 +117,7 @@ function init() {
     imageBrightness.value = storage.get("imageBrightness", storage.get("imageBrightness", 100));
     alignment.value = storage.get("alignment", storage.get("alignment", "center"));
     imageSpacing.value = storage.get("imageSpacing", storage.get("imageSpacing", 0));
-    bookmarkedChapter.value = storage.get(
-        "bookmarkedChapter",
-        storage.get("bookmarkedChapter", "")
-    );
+    bookmarkedChapter.value = storage.get(bookmarkKey(props.mangaName), "");
 
     emits("updateImageWidth", imageWidth.value);
     emits("updateImageBrightness", imageBrightness.value);
@@ -164,12 +165,12 @@ function closeModal() {
 }
 
 function saveBookmark() {
-    storage.set("bookmarkedChapter", props.activeChapter);
+    storage.set(bookmarkKey(props.mangaName), props.activeChapter);
     bookmarkedChapter.value = props.activeChapter;
 }
 
 function removeBookmark() {
-    storage.remove("bookmarkedChapter");
+    storage.remove(bookmarkKey(props.mangaName));
     bookmarkedChapter.value = "";
 }
 

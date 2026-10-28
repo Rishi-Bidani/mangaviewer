@@ -1,12 +1,11 @@
 // local storage
 
 export const storage = {
-    get: (key: string, defaultValue: any) => {
+    get: <T>(key: string, defaultValue: T): T => {
         const value = localStorage.getItem(key);
-        // return value ? JSON.parse(value) : null;
-        return value ? JSON.parse(value) : defaultValue ? defaultValue : null;
+        return value ? (JSON.parse(value) as T) : defaultValue;
     },
-    set: (key: string, value: any) => {
+    set: (key: string, value: unknown) => {
         localStorage.setItem(key, JSON.stringify(value));
     },
     remove: (key: string) => {
@@ -16,3 +15,6 @@ export const storage = {
         localStorage.clear();
     },
 };
+
+// bookmarks are stored per manga
+export const bookmarkKey = (mangaName: string) => `bookmarkedChapter:${mangaName}`;

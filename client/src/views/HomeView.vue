@@ -11,7 +11,7 @@
                         v-for="mangaName in mangaNames"
                         :key="mangaName"
                         :mangaName="mangaName"
-                        :mangaLink="`/#/read/${mangaName}`"
+                        :mangaLink="`/#/read/${encodeURIComponent(mangaName)}`"
                     />
                 </v-container>
             </v-main>

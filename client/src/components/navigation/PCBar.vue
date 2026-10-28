@@ -15,6 +15,7 @@
             <div class="overflow-auto">
                 <v-list-item
                     v-for="item in props.chapterList"
+                    :key="item"
                     link
                     :title="item"
                     @click="() => $emit('chapter-click', item)"

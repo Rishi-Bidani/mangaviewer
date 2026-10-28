@@ -1,5 +1,5 @@
-import * as path from "path";
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
+import * as path from "node:path";
 
 interface IFilesAndFolders {
     files: string[];
@@ -20,76 +20,89 @@ interface ISettings {
     IGNORE_LIST: string[];
 }
 
+import { dirname } from "node:path";
 // defining __dirname
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const SETTINGS_PATH = path.join(__dirname, "..", "data", "settings.json");
 
-// TYPES
-// typedef pathstring
+const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".bmp"]);
 
-async function getSettings(): Promise<ISettings> {
-    const settings = await fs.readFile(SETTINGS_PATH, "utf8");
-    return JSON.parse(settings);
+/**
+ * @brief thrown when a requested path would resolve outside the base manga folder
+ */
+export class PathOutsideBaseError extends Error {
+    constructor() {
+        super("Path is outside the manga folder");
+    }
 }
 
+async function readSettings(): Promise<ISettings> {
+    const rawSettings = await fs.readFile(SETTINGS_PATH, "utf8");
+    const settings: ISettings = rawSettings
+        ? JSON.parse(rawSettings)
+        : { BASE_MANGA_FOLDER: [], IGNORE_LIST: [] };
+    // env var overrides settings.json (used by the docker image); kept as a single
+    // segment so absolute paths like "/manga" aren't turned into relative ones
+    if (process.env.BASE_MANGA_FOLDER) {
+        settings.BASE_MANGA_FOLDER = [process.env.BASE_MANGA_FOLDER];
+    }
+
+    return settings;
+}
+
+// settings are read once at startup, restart the server to pick up changes
+const settingsPromise = readSettings();
+
 async function getFilesAndFolders(dir: string): Promise<IFilesAndFolders> {
-    const filesAndFolders = await fs.readdir(dir, { withFileTypes: true });
+    const filesAndFolders = (await fs.readdir(dir, { withFileTypes: true })).filter(
+        (entry) => !entry.name.startsWith(".")
+    );
     const files = filesAndFolders.filter((file) => file.isFile()).map((file) => file.name);
     const folders = filesAndFolders.filter((file) => file.isDirectory()).map((file) => file.name);
     return { files, folders };
 }
 
+/**
+ * @brief joins segments onto the base folder, refusing anything that escapes it (e.g. "../")
+ */
+async function resolveInBase(...segments: string[]): Promise<string> {
+    const baseFolder = path.resolve(await FileHandler.baseFolder);
+    const target = path.resolve(baseFolder, ...segments);
+    const relative = path.relative(baseFolder, target);
+    if (relative.startsWith("..") || path.isAbsolute(relative)) {
+        throw new PathOutsideBaseError();
+    }
+    return target;
+}
+
 export default class FileHandler {
     static get baseFolder(): Promise<string> {
-        return (async (): Promise<string> => {
-            const settings: ISettings = await getSettings();
-            return path.join(...settings["BASE_MANGA_FOLDER"]);
-        })();
+        return settingsPromise.then((settings) => path.join(...settings.BASE_MANGA_FOLDER));
     }
 
     static get ignoreList(): Promise<string[]> {
-        return (async (): Promise<string[]> => {
-            const settings: ISettings = await getSettings();
-            const ignoreList: string[] = settings.IGNORE_LIST;
-            const baseFolder: string[] = settings.BASE_MANGA_FOLDER;
-            (await ignoreList).map(async (item: string) => path.join(...(await baseFolder), item));
-            return ignoreList;
-        })();
+        return settingsPromise.then((settings) => settings.IGNORE_LIST);
     }
 
     static async getMangaList(): Promise<string[]> {
-        const baseFolder = await FileHandler.baseFolder;
-        const _ignoreList: Promise<string[]> = FileHandler.ignoreList;
-        const { folders } = await getFilesAndFolders(baseFolder);
-        // resolve ignoreList promise
-        const ignoreList = await _ignoreList;
+        const { folders } = await getFilesAndFolders(await FileHandler.baseFolder);
+        const ignoreList = await FileHandler.ignoreList;
         return folders.filter((folder: string) => !ignoreList.includes(folder));
     }
 
     static async getChapterList(manga: string): Promise<string[]> {
-        const baseFolder = FileHandler.baseFolder;
-        const { folders } = await getFilesAndFolders(path.join(await baseFolder, manga));
+        const { folders } = await getFilesAndFolders(await resolveInBase(manga));
         return folders;
     }
+
+    /**
+     * @returns the image file names inside the chapter folder
+     */
     static async getChapterImages(manga: string, chapter: string): Promise<string[]> {
-        const baseFolder = FileHandler.baseFolder;
-        const { files } = await getFilesAndFolders(path.join(await baseFolder, manga, chapter));
-        const paths = files.map(async (file) => path.join(manga, chapter, file));
-        // console.log(await Promise.all(paths));
-        // return files;
-        return await Promise.all(paths);
-        // return await paths;
+        const { files } = await getFilesAndFolders(await resolveInBase(manga, chapter));
+        return files.filter((file) => IMAGE_EXTENSIONS.has(path.extname(file).toLowerCase()));
     }
-
-    // get data
-    // static async getMangaListData(): Promise<> {}
-    // static async getChapterListData(manga: string): Promise<> {}
-    // static async getChapterImagesData(manga: string, chapter: string): Promise<> {}
 }
-
-// getFilesAndFolders(testDir).then((result) => console.log(result));
-// FileHandler.getChapterList("claymore").then((result) => console.log(result));

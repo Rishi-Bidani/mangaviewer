@@ -1,10 +1,11 @@
-import { createRequire } from "module";
+import { createRequire } from "node:module";
+
 const require = createRequire(import.meta.url);
 
 export default function getIPAddresses() {
     const ipAddresses = [];
 
-    const interfaces = require("os").networkInterfaces();
+    const interfaces = require("node:os").networkInterfaces();
     for (const devName in interfaces) {
         const iface = interfaces[devName];
         for (let i = 0; i < iface.length; i++) {
