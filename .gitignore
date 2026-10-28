@@ -1,3 +1,4 @@
 **/node_modules
 /mangaviewer.code-workspace
 dist/
+.env

@@ -1,3 +1,4 @@
+import { stat } from "node:fs/promises";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
@@ -12,12 +13,18 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const app = express();
 const http = require("node:http").Server(app);
-const PORT: number = (process.env.PORT as unknown as number) || 8080;
+const PORT = await FileHandler.port;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const BASE_FOLDER = await FileHandler.baseFolder;
+if (!(await stat(BASE_FOLDER).catch(() => null))?.isDirectory()) {
+    console.error(
+        `Manga folder "${BASE_FOLDER}" does not exist. Set BASE_MANGA_FOLDER in server/data/settings.json or as an environment variable.`
+    );
+    process.exit(1);
+}
 app.use("/images", express.static(BASE_FOLDER));
 
 // make built files available

@@ -19,23 +19,53 @@ have already downloaded. I have manga downloading projects however, they haven't
 
 ## Getting Started 🚀
 
-1. Install Node.js, Yarn, and ensure the `make` command is available.
-2. Clone the repository:
+### Docker (recommended)
+
+1. Clone the repository:
 
 ```bash
 git clone https://github.com/Rishi-Bidani/mangaviewer.git
+cd mangaviewer
 ```
 
-3. Update the settings.json file in ./server/data to point to your manga folder.
+2. Copy `.env.example` to `.env` and edit it:
+
+```bash
+PORT=8080                                    # port to open the site on
+MANGA_DIR=/mnt/manga                         # folder containing one sub-folder per manga
+IGNORE_LIST=kenja no mago,mangadownloader    # comma separated folders to hide
+```
+
+3. Start it with `docker compose up -d` (add `--build` to build the image yourself instead of
+   pulling it) and open `http://<server-ip>:<PORT>`.
+
+> [!NOTE]
+> `IGNORE_LIST` is split on commas, so a folder whose name contains a comma can't be ignored this
+> way. Rename the folder, or move it out of `MANGA_DIR`.
+
+### Without Docker
+
+1. Install Node.js 24+ and Yarn.
+2. Update `server/data/settings.json`:
 
 ```json
 {
-    "BASE_MANGA_FOLDER": ["D:\\", "manga"], // The base folder where your manga is stored. The app will look for the manga in this folder.
-    "IGNORE_LIST": ["kenja no mago"] // The list of (sub)folders to ignore.
+    "PORT": 8080,
+    "BASE_MANGA_FOLDER": "D:\\manga",
+    "IGNORE_LIST": ["kenja no mago"]
 }
 ```
 
-4. `make build-exec` will run everything but maken sure to update `GLOBAL_EXECUTABLE_FOLDER` in the makefile.
+The `PORT`, `BASE_MANGA_FOLDER` and `IGNORE_LIST` (comma separated) environment variables override these.
+To ignore a folder whose name contains a comma, list it in `settings.json` and don't set the
+`IGNORE_LIST` variable.
+
+> [!NOTE]
+> In development (`yarn dev` in `client/`, or the "Mangaviewer (dev)" launch config), the Vite dev
+> server always forwards `/api` and `/images` to port 8080. If you change `PORT`, also change the
+> two `target` URLs in `client/vite.config.ts`. Production builds and Docker aren't affected.
+
+3. `./compile.sh` builds everything, make sure to update `GLOBAL_EXECUTABLE_FOLDER` in it first.
 
 ## TODO
 

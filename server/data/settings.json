@@ -1,4 +1,5 @@
 {
-    "BASE_MANGA_FOLDER": ["D:\\", "manga"],
+    "PORT": 8080,
+    "BASE_MANGA_FOLDER": "D:\\manga",
     "IGNORE_LIST": ["kenja no mago", "mangadownloader"]
 }

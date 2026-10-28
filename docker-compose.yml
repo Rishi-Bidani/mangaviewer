@@ -1,11 +1,15 @@
+# configure with a .env file next to this one (copy .env.example)
 services:
   mangaviewer:
+    # `docker compose pull && docker compose up -d` uses the image published by the
+    # github action; `docker compose up -d --build` builds it locally instead
+    image: ghcr.io/rishi-bidani/mangaviewer:latest
     build: .
-    image: mangaviewer:latest
     container_name: mangaviewer
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
+    environment:
+      IGNORE_LIST: ${IGNORE_LIST:-}
     volumes:
-      # change the left side to wherever your manga lives on the host
-      - /mnt/manga:/manga:ro
+      - "${MANGA_DIR:?set MANGA_DIR in .env to the folder your manga is in}:/manga:ro"

@@ -5,3 +5,5 @@ dist
 .vscode
 Dockerfile
 docker-compose.yml
+.env
+.env.example

@@ -8,10 +8,16 @@ interface IFilesAndFolders {
 
 interface ISettings {
     /**
-     * @brief The base path to the folder where the mangas are downloaded and stored
-     * @example ["C:", "applications", "my mangas"]
+     * @brief The port the server listens on, defaults to 8080
      */
-    BASE_MANGA_FOLDER: string[];
+    PORT?: number;
+
+    /**
+     * @brief The folder where the mangas are downloaded and stored, either as a path or as
+     * path segments
+     * @example "C:\applications\my mangas" or ["C:", "applications", "my mangas"]
+     */
+    BASE_MANGA_FOLDER: string | string[];
 
     /**
      * @brief the mangas or other folders that should be ignored
@@ -44,10 +50,20 @@ async function readSettings(): Promise<ISettings> {
     const settings: ISettings = rawSettings
         ? JSON.parse(rawSettings)
         : { BASE_MANGA_FOLDER: [], IGNORE_LIST: [] };
-    // env var overrides settings.json (used by the docker image); kept as a single
-    // segment so absolute paths like "/manga" aren't turned into relative ones
-    if (process.env.BASE_MANGA_FOLDER) {
-        settings.BASE_MANGA_FOLDER = [process.env.BASE_MANGA_FOLDER];
+
+    // env vars override settings.json (the docker image sets these)
+    const { PORT, BASE_MANGA_FOLDER, IGNORE_LIST } = process.env;
+    if (PORT) {
+        settings.PORT = Number(PORT);
+    }
+    if (BASE_MANGA_FOLDER) {
+        settings.BASE_MANGA_FOLDER = BASE_MANGA_FOLDER;
+    }
+    // an empty IGNORE_LIST still overrides, so docker users can clear the baked-in list
+    if (IGNORE_LIST !== undefined) {
+        settings.IGNORE_LIST = IGNORE_LIST.split(",")
+            .map((name) => name.trim())
+            .filter(Boolean);
     }
 
     return settings;
@@ -79,8 +95,14 @@ async function resolveInBase(...segments: string[]): Promise<string> {
 }
 
 export default class FileHandler {
+    static get port(): Promise<number> {
+        return settingsPromise.then((settings) => settings.PORT || 8080);
+    }
+
     static get baseFolder(): Promise<string> {
-        return settingsPromise.then((settings) => path.join(...settings.BASE_MANGA_FOLDER));
+        return settingsPromise.then((settings) =>
+            path.join(...[settings.BASE_MANGA_FOLDER].flat())
+        );
     }
 
     static get ignoreList(): Promise<string[]> {

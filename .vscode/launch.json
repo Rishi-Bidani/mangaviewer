@@ -2,16 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            // express api on :8080, node runs the .ts files directly and restarts on changes
+            // express api (port from server/data/settings.json), node runs the .ts files
+            // directly and restarts on changes
             "name": "Server",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}/server",
             "program": "${workspaceFolder}/server/main.ts",
             "runtimeArgs": ["--watch"],
-            "env": {
-                "PORT": "8080"
-            },
             "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
             "console": "integratedTerminal"
         },

@@ -15,6 +15,10 @@ COPY server ./server
 RUN yarn --cwd ./client build \
     && yarn --cwd ./server build
 
+# prune server devDependencies here, where every package is already in the yarn cache
+# (yarn 1 still downloads devDependencies on a fresh `install --production`)
+RUN yarn --cwd ./server install --frozen-lockfile --production --offline
+
 # ---- runtime stage: only the built output + production server deps ----
 FROM node:24-alpine
 
@@ -25,9 +29,9 @@ ENV NODE_ENV=production \
 WORKDIR /app
 
 COPY --from=build /app/dist ./dist
-COPY server/package.json server/yarn.lock ./dist/server/
-RUN yarn --cwd ./dist/server install --frozen-lockfile --production \
-    && yarn cache clean
+# package.json is needed at runtime for "type": "module"
+COPY --from=build /app/server/package.json ./dist/server/
+COPY --from=build /app/server/node_modules ./dist/server/node_modules
 
 USER node
 
