@@ -1,0 +1,10 @@
+packages:
+  - client
+  - server
+
+# don't install package versions published less than 14 days ago (in minutes)
+minimumReleaseAge: 20160
+
+# packages allowed to run install scripts
+allowBuilds:
+  esbuild: true

@@ -43,9 +43,33 @@ IGNORE_LIST=kenja no mago,mangadownloader    # comma separated folders to hide
 > `IGNORE_LIST` is split on commas, so a folder whose name contains a comma can't be ignored this
 > way. Rename the folder, or move it out of `MANGA_DIR`.
 
+### Standalone executable
+
+Download the executable for your system from the
+[releases page](https://github.com/Rishi-Bidani/mangaviewer/releases) (`mangaviewer-win-x64.exe`,
+`mangaviewer-linux-x64`, `mangaviewer-darwin-arm64`, ...). It contains everything, Node.js included,
+so nothing needs to be installed:
+
+```bash
+mangaviewer-win-x64.exe --dir "D:\manga" --port 8080 --ignore "kenja no mago,mangadownloader"
+```
+
+Without `--dir` it serves the folder it's started from, so you can also drop it into your manga
+folder and double-click it. `--help` lists the options; the `BASE_MANGA_FOLDER`, `PORT` and
+`IGNORE_LIST` environment variables work too.
+
+On Linux and macOS, make it executable first with `chmod +x mangaviewer-*`. macOS blocks downloaded
+apps that aren't notarized: allow it under System Settings → Privacy & Security, or run
+`xattr -d com.apple.quarantine mangaviewer-darwin-*`.
+
+To build them yourself, run `pnpm bundle` with Node.js 25.7+; the executables for every platform
+end up in `release/`. Executables for macOS are only signed when built on a Mac, and Apple Silicon
+Macs won't run unsigned ones (sign them with `codesign --sign - <file>`).
+
 ### Without Docker
 
-1. Install Node.js 24+ and Yarn.
+1. Install Node.js 24+ and pnpm 12 (`npm install -g pnpm@12`, or `corepack enable`), then run
+   `pnpm install` in the repository root.
 2. Update `server/data/settings.json`:
 
 ```json
@@ -61,11 +85,19 @@ To ignore a folder whose name contains a comma, list it in `settings.json` and d
 `IGNORE_LIST` variable.
 
 > [!NOTE]
-> In development (`yarn dev` in `client/`, or the "Mangaviewer (dev)" launch config), the Vite dev
-> server always forwards `/api` and `/images` to port 8080. If you change `PORT`, also change the
-> two `target` URLs in `client/vite.config.ts`. Production builds and Docker aren't affected.
+> In development (`pnpm dev`, or the "Mangaviewer (dev)" launch config), the Vite dev server
+> always forwards `/api` and `/images` to port 8080. If you change `PORT`, also change the two
+> `target` URLs in `client/vite.config.ts`. Production builds and Docker aren't affected.
 
-3. `./compile.sh` builds everything, make sure to update `GLOBAL_EXECUTABLE_FOLDER` in it first.
+3. Run it, from the repository root:
+
+| Command | What it does |
+|---|---|
+| `pnpm build` | Builds the client into `client/dist` and the server into `server/dist` |
+| `pnpm start` | Runs the built app |
+| `pnpm dev` | Runs the server and the Vite dev server with live reload |
+| `pnpm bundle` | Builds the standalone executables into `release/` (needs Node.js 25.7+) |
+| `pnpm lint` / `pnpm format` | Lints / formats both packages |
 
 ## TODO
 

@@ -32,7 +32,8 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const SETTINGS_PATH = path.join(__dirname, "..", "data", "settings.json");
+// server/data, from both src/system and dist/system
+const SETTINGS_PATH = path.join(__dirname, "..", "..", "data", "settings.json");
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".bmp"]);
 
@@ -46,7 +47,11 @@ export class PathOutsideBaseError extends Error {
 }
 
 async function readSettings(): Promise<ISettings> {
-    const rawSettings = await fs.readFile(SETTINGS_PATH, "utf8");
+    // a missing settings.json is fine, e.g. in the standalone bundle
+    const rawSettings = await fs.readFile(SETTINGS_PATH, "utf8").catch((error) => {
+        if (error.code === "ENOENT") return "";
+        throw error;
+    });
     const settings: ISettings = rawSettings
         ? JSON.parse(rawSettings)
         : { BASE_MANGA_FOLDER: [], IGNORE_LIST: [] };
@@ -69,8 +74,13 @@ async function readSettings(): Promise<ISettings> {
     return settings;
 }
 
-// settings are read once at startup, restart the server to pick up changes
-const settingsPromise = readSettings();
+// settings are read once, on first use (so env vars can still be set before that); restart the
+// server to pick up changes
+let settingsPromise: Promise<ISettings> | undefined;
+function getSettings(): Promise<ISettings> {
+    settingsPromise ??= readSettings();
+    return settingsPromise;
+}
 
 async function getFilesAndFolders(dir: string): Promise<IFilesAndFolders> {
     const filesAndFolders = (await fs.readdir(dir, { withFileTypes: true })).filter(
@@ -96,17 +106,15 @@ async function resolveInBase(...segments: string[]): Promise<string> {
 
 export default class FileHandler {
     static get port(): Promise<number> {
-        return settingsPromise.then((settings) => settings.PORT || 8080);
+        return getSettings().then((settings) => settings.PORT || 8080);
     }
 
     static get baseFolder(): Promise<string> {
-        return settingsPromise.then((settings) =>
-            path.join(...[settings.BASE_MANGA_FOLDER].flat())
-        );
+        return getSettings().then((settings) => path.join(...[settings.BASE_MANGA_FOLDER].flat()));
     }
 
     static get ignoreList(): Promise<string[]> {
-        return settingsPromise.then((settings) => settings.IGNORE_LIST);
+        return getSettings().then((settings) => settings.IGNORE_LIST);
     }
 
     static async getMangaList(): Promise<string[]> {

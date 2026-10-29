@@ -1,14 +1,20 @@
 {
     "name": "@mangaviewer/server",
     "version": "1.0.0",
-    "main": "main.js",
+    "private": true,
+    "type": "module",
+    "main": "dist/main.js",
+    "files": [
+        "dist",
+        "data"
+    ],
     "author": "Rishi",
     "license": "MIT",
     "scripts": {
-        "dev": "node --watch ./main.ts",
-        "cleartest": "rm -rf ./test/*",
-        "build": "tsc && cp -r ./data ../dist/server/",
-        "start": "node ./main.js",
+        "dev": "node --watch ./src/main.ts",
+        "build": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.build.json",
+        "start": "node ./dist/main.js",
+        "bundle": "tsdown",
         "lint": "biome lint",
         "format": "biome format --write",
         "check": "biome check --write"
@@ -19,10 +25,12 @@
         "natural-orderby": "^3.0.1"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.6.3",
+        "@biomejs/biome": "2.5.15",
+        "@tsdown/exe": "0.23.1",
+        "@types/cors": "^2.8.19",
         "@types/express": "^5.0.0",
         "@types/node": "^24.19.2",
+        "tsdown": "^0.23.1",
         "typescript": "^7.0.2"
-    },
-    "type": "module"
+    }
 }

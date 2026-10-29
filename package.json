@@ -1,0 +1,17 @@
+{
+    "name": "mangaviewer",
+    "private": true,
+    "license": "MIT",
+    "packageManager": "pnpm@12.13.0",
+    "engines": {
+        "node": ">=24"
+    },
+    "scripts": {
+        "dev": "pnpm --recursive --parallel dev",
+        "build": "pnpm --recursive build",
+        "start": "pnpm --filter @mangaviewer/server start",
+        "bundle": "pnpm --filter @mangaviewer/client build && pnpm --filter @mangaviewer/server bundle",
+        "lint": "pnpm --recursive lint",
+        "format": "pnpm --recursive format"
+    }
+}

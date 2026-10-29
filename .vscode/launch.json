@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}/server",
-            "program": "${workspaceFolder}/server/main.ts",
+            "program": "${workspaceFolder}/server/src/main.ts",
             "runtimeArgs": ["--watch"],
             "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
             "console": "integratedTerminal"
@@ -19,7 +19,7 @@
             "type": "node-terminal",
             "request": "launch",
             "cwd": "${workspaceFolder}/client",
-            "command": "yarn dev",
+            "command": "pnpm dev",
             "serverReadyAction": {
                 "pattern": "Local:",
                 "uriFormat": "http://localhost:5173",

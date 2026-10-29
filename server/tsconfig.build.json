@@ -1,0 +1,10 @@
+{
+    // compiles src/ into dist/ (`pnpm build`)
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": false,
+        "rootDir": "src",
+        "outDir": "dist"
+    },
+    "include": ["src"]
+}

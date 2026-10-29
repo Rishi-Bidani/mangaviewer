@@ -4,8 +4,8 @@
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         "types": ["node"],
-        "rootDir": ".",
-        "outDir": "../dist/server",
+        // type checking only (editor, `tsc`); the build uses tsconfig.build.json
+        "noEmit": true,
 
         /* node runs the .ts files directly in dev (type stripping), so only
            erasable syntax is allowed and imports use .ts extensions; tsc
@@ -19,5 +19,5 @@
         "forceConsistentCasingInFileNames": true,
         "skipLibCheck": true
     },
-    "include": ["**/*.ts"]
+    "include": ["src", "tsdown.config.ts"]
 }

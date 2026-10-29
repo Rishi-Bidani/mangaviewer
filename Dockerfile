@@ -1,25 +1,26 @@
-# ---- build stage: compile client (vite) and server (tsc) into /app/dist ----
+# ---- build stage: install the workspace, build client + server ----
 FROM node:24-alpine AS build
+
+# pnpm version comes from "packageManager" in package.json
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable
 
 WORKDIR /app
 
-# install deps first so they're cached unless the lockfiles change
-COPY client/package.json client/yarn.lock ./client/
-COPY server/package.json server/yarn.lock ./server/
-RUN yarn --cwd ./client install --frozen-lockfile \
-    && yarn --cwd ./server install --frozen-lockfile
+# install deps first so they're cached unless a manifest or the lockfile changes
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY client/package.json ./client/
+COPY server/package.json ./server/
+RUN pnpm install --frozen-lockfile
 
 COPY client ./client
 COPY server ./server
+RUN pnpm build
 
-RUN yarn --cwd ./client build \
-    && yarn --cwd ./server build
+# self-contained copy of the server (dist + production node_modules only)
+RUN pnpm --filter @mangaviewer/server deploy --prod /prod/server
 
-# prune server devDependencies here, where every package is already in the yarn cache
-# (yarn 1 still downloads devDependencies on a fresh `install --production`)
-RUN yarn --cwd ./server install --frozen-lockfile --production --offline
-
-# ---- runtime stage: only the built output + production server deps ----
+# ---- runtime stage: same layout as the repo, so dist/app.js finds ../../client/dist ----
 FROM node:24-alpine
 
 ENV NODE_ENV=production \
@@ -28,10 +29,8 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 
-COPY --from=build /app/dist ./dist
-# package.json is needed at runtime for "type": "module"
-COPY --from=build /app/server/package.json ./dist/server/
-COPY --from=build /app/server/node_modules ./dist/server/node_modules
+COPY --from=build /prod/server ./server
+COPY --from=build /app/client/dist ./client/dist
 
 USER node
 
@@ -41,4 +40,4 @@ VOLUME ["/manga"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
     CMD wget -qO- "http://127.0.0.1:${PORT}/api/mangas" > /dev/null || exit 1
 
-CMD ["node", "dist/server/main.js"]
+CMD ["node", "server/dist/main.js"]
