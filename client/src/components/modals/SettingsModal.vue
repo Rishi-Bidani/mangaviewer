@@ -1,105 +1,149 @@
 <template>
-    <v-dialog v-model="dialog" scrim="false" class="modal-width">
-        <v-card>
-            <v-card-title> Settings </v-card-title>
-            <v-divider />
-            <v-card-text>
-                <div class="text-caption">Image Width</div>
-                <v-slider v-model="imageWidth" :max="100" :step="1" hide-details>
-                    <template v-slot:append>
-                        <v-text-field
-                            v-model="imageWidth"
-                            type="number"
-                            style="width: 80px"
-                            density="compact"
-                            hide-details
-                            variant="outlined"
-                        ></v-text-field>
-                    </template>
-                </v-slider>
-            </v-card-text>
-            <v-card-text>
-                <div class="text-caption">Image Brightness</div>
-                <v-slider v-model="imageBrightness" :max="100" :step="1" hide-details>
-                    <template v-slot:append>
-                        <v-text-field
-                            v-model="imageBrightness"
-                            type="number"
-                            style="width: 80px"
-                            density="compact"
-                            hide-details
-                            variant="outlined"
-                        ></v-text-field>
-                    </template>
-                </v-slider>
-            </v-card-text>
-            <v-card-text>
-                <div class="text-caption">Bookmark chapter</div>
-                <div class="d-flex">
-                    <div class="d-flex ga-2 mr-2">
-                        <v-btn @click="saveBookmark">
-                            <v-icon> mdi-bookmark </v-icon>
-                        </v-btn>
-                        <v-btn color="red" @click="removeBookmark">
-                            <v-icon> mdi-bookmark-remove </v-icon>
-                        </v-btn>
-                    </div>
-                    <v-text-field
-                        v-model="bookmarkedChapter"
-                        type="text"
-                        style="width: 80px"
-                        density="compact"
-                        hide-details
-                        variant="outlined"
-                    ></v-text-field>
+    <!-- no scrim so the pages stay visible and update live while adjusting -->
+    <v-navigation-drawer v-model="dialog" location="right" temporary :scrim="false" :width="320">
+        <v-toolbar density="compact" color="transparent">
+            <v-toolbar-title class="text-subtitle-1 font-weight-medium">Settings</v-toolbar-title>
+            <v-btn icon="mdi-close" variant="text" @click="closeModal" />
+        </v-toolbar>
+        <v-divider />
+
+        <div class="pa-4 d-flex flex-column ga-6">
+            <section>
+                <div class="text-overline text-medium-emphasis">Theme</div>
+                <v-btn-toggle
+                    v-model="themeName"
+                    mandatory
+                    divided
+                    variant="outlined"
+                    density="comfortable"
+                    color="primary"
+                    class="d-flex"
+                >
+                    <v-btn
+                        v-for="option in themeOptions"
+                        :key="option.value"
+                        :value="option.value"
+                        :prepend-icon="option.icon"
+                        class="flex-grow-1"
+                    >
+                        {{ option.label }}
+                    </v-btn>
+                </v-btn-toggle>
+            </section>
+
+            <section v-for="slider in sliders" :key="slider.label">
+                <div class="d-flex align-center justify-space-between">
+                    <div class="text-overline text-medium-emphasis">{{ slider.label }}</div>
+                    <span class="text-body-2">{{ slider.model.value }}{{ slider.unit }}</span>
                 </div>
-            </v-card-text>
-            <v-card-text>
-                <div class="text-caption">Image Spacing</div>
-                <v-slider v-model="imageSpacing" :max="20" :step="1" hide-details>
-                    <template v-slot:append>
-                        <v-text-field
-                            v-model="imageSpacing"
-                            type="number"
-                            style="width: 80px"
-                            density="compact"
-                            hide-details
-                            variant="outlined"
-                        ></v-text-field>
-                    </template>
-                </v-slider>
-            </v-card-text>
-            <v-card-text>
-                <div class="text-caption">Image Alignment</div>
-                <v-radio-group inline v-model="alignment">
-                    <div class="d-flex flex-row gc-2 flex-wrap">
-                        <v-radio name="alignment" label="Left" value="start"></v-radio>
-                        <v-radio name="alignment" label="Center" value="center"></v-radio>
-                        <v-radio name="alignment" label="Right" value="end"></v-radio>
-                    </div>
-                </v-radio-group>
-            </v-card-text>
-            <v-divider />
-            <v-card-text>
-                <div class="text-caption"></div>
-            </v-card-text>
-            <v-card-actions>
-                <v-btn color="primary" block @click="closeModal">Close Dialog</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+                <v-slider
+                    v-model="slider.model.value"
+                    :min="slider.min"
+                    :max="slider.max"
+                    :step="1"
+                    color="primary"
+                    hide-details
+                />
+            </section>
+
+            <section>
+                <div class="text-overline text-medium-emphasis">Alignment</div>
+                <v-btn-toggle
+                    v-model="alignment"
+                    mandatory
+                    divided
+                    variant="outlined"
+                    density="comfortable"
+                    color="primary"
+                    class="d-flex"
+                >
+                    <v-btn
+                        v-for="option in alignmentOptions"
+                        :key="option.value"
+                        :value="option.value"
+                        :icon="option.icon"
+                        :aria-label="option.label"
+                        class="flex-grow-1"
+                    />
+                </v-btn-toggle>
+            </section>
+
+            <section>
+                <div class="text-overline text-medium-emphasis">Bookmark</div>
+                <div class="d-flex align-center ga-2">
+                    <v-icon :icon="bookmarkedChapter ? 'mdi-bookmark' : 'mdi-bookmark-outline'" />
+                    <span class="text-body-2 flex-grow-1 text-truncate">
+                        {{ bookmarkedChapter || "No bookmark" }}
+                    </span>
+                    <v-btn
+                        icon="mdi-bookmark-plus"
+                        variant="tonal"
+                        color="primary"
+                        size="small"
+                        aria-label="Bookmark this chapter"
+                        @click="saveBookmark"
+                    />
+                    <v-btn
+                        icon="mdi-bookmark-remove"
+                        variant="text"
+                        size="small"
+                        aria-label="Remove bookmark"
+                        :disabled="!bookmarkedChapter"
+                        @click="removeBookmark"
+                    />
+                </div>
+            </section>
+        </div>
+
+        <template v-slot:append>
+            <div class="pa-4">
+                <v-btn
+                    block
+                    variant="tonal"
+                    prepend-icon="mdi-restore"
+                    @click="resetDisplaySettings"
+                >
+                    Reset to defaults
+                </v-btn>
+            </div>
+        </template>
+    </v-navigation-drawer>
 </template>
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
+import { useTheme } from "vuetify";
 import { storage, bookmarkKey } from "@/assets/storage";
+import { themeOptions, themeKey, type ThemeName } from "@/assets/themes";
 
-const imageWidth = ref(100);
-const imageBrightness = ref(100);
-const alignment = ref("center");
-const imageSpacing = ref(0);
+const displayDefaults = {
+    imageWidth: 100,
+    imageBrightness: 100,
+    alignment: "center",
+    imageSpacing: 0,
+};
+
+const imageWidth = ref(displayDefaults.imageWidth);
+const imageBrightness = ref(displayDefaults.imageBrightness);
+const alignment = ref(displayDefaults.alignment);
+const imageSpacing = ref(displayDefaults.imageSpacing);
 const bookmarkedChapter = ref("");
 
+const theme = useTheme();
+const themeName = ref(theme.global.name.value as ThemeName);
+
 const dialog = ref(false);
+
+const sliders = [
+    { label: "Image width", model: imageWidth, min: 10, max: 100, unit: "%" },
+    { label: "Brightness", model: imageBrightness, min: 10, max: 100, unit: "%" },
+    { label: "Spacing", model: imageSpacing, min: 0, max: 20, unit: "px" },
+];
+
+const alignmentOptions = [
+    { value: "start", label: "Align left", icon: "mdi-format-align-left" },
+    { value: "center", label: "Align center", icon: "mdi-format-align-center" },
+    { value: "end", label: "Align right", icon: "mdi-format-align-right" },
+];
 
 const props = defineProps({
     mangaName: {
@@ -113,10 +157,10 @@ const props = defineProps({
 });
 
 function init() {
-    imageWidth.value = storage.get("imageWidth", 100);
-    imageBrightness.value = storage.get("imageBrightness", 100);
-    alignment.value = storage.get("alignment", "center");
-    imageSpacing.value = storage.get("imageSpacing", 0);
+    imageWidth.value = storage.get("imageWidth", displayDefaults.imageWidth);
+    imageBrightness.value = storage.get("imageBrightness", displayDefaults.imageBrightness);
+    alignment.value = storage.get("alignment", displayDefaults.alignment);
+    imageSpacing.value = storage.get("imageSpacing", displayDefaults.imageSpacing);
     bookmarkedChapter.value = storage.get(bookmarkKey(props.mangaName), "");
 
     emits("updateImageWidth", imageWidth.value);
@@ -156,6 +200,19 @@ watch(imageSpacing, () => {
     storage.set("imageSpacing", imageSpacing.value);
 });
 
+watch(themeName, () => {
+    theme.change(themeName.value);
+    storage.set(themeKey, themeName.value);
+});
+
+// resets the image display settings; theme and bookmark are left alone
+function resetDisplaySettings() {
+    imageWidth.value = displayDefaults.imageWidth;
+    imageBrightness.value = displayDefaults.imageBrightness;
+    alignment.value = displayDefaults.alignment;
+    imageSpacing.value = displayDefaults.imageSpacing;
+}
+
 function showModal() {
     dialog.value = true;
 }
@@ -179,8 +236,3 @@ defineExpose({
     closeModal,
 });
 </script>
-<style scoped>
-.modal-width {
-    width: min(95vw, 600px);
-}
-</style>

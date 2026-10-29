@@ -1,0 +1,8 @@
+// vuetify sass variables, loaded by vite-plugin-vuetify (styles.configFile in vite.config.ts)
+@use "vuetify/settings" with (
+    $body-font-family: (
+        "Inter Variable",
+        system-ui,
+        sans-serif,
+    )
+);

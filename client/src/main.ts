@@ -21,11 +21,15 @@ const router = createRouter({
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
 import "@mdi/font/css/materialdesignicons.css";
+import "@fontsource-variable/inter";
+import { storage } from "./assets/storage";
+import { themes, themeKey, type ThemeName } from "./assets/themes";
 
 // components and directives are imported on demand by vite-plugin-vuetify
 const vuetify = createVuetify({
     theme: {
-        defaultTheme: "dark",
+        defaultTheme: storage.get<ThemeName>(themeKey, "dark"),
+        themes,
     },
 });
 

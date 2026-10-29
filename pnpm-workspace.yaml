@@ -8,3 +8,5 @@ minimumReleaseAge: 20160
 # packages allowed to run install scripts
 allowBuilds:
   esbuild: true
+  # optional sass dependency, only used by `sass --watch`; ships prebuilt binaries
+  "@parcel/watcher": false

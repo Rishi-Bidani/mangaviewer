@@ -2,7 +2,10 @@
     <div>
         <v-app>
             <v-app-bar class="d-flex flex-wrap">
-                <v-app-bar-title> Read Manga </v-app-bar-title>
+                <template v-slot:prepend>
+                    <v-icon icon="mdi-book-open-page-variant" color="primary" class="ml-2" />
+                </template>
+                <v-app-bar-title class="font-weight-bold"> Manga Viewer </v-app-bar-title>
                 <SearchBar @search="filterCards" />
             </v-app-bar>
             <v-main>
