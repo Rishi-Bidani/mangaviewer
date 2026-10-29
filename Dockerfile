@@ -25,12 +25,16 @@ FROM node:24-alpine
 
 ENV NODE_ENV=production \
     PORT=8080 \
-    BASE_MANGA_FOLDER=/manga
+    BASE_MANGA_FOLDER=/manga \
+    METADATA_FOLDER=/data/metadata
 
 WORKDIR /app
 
 COPY --from=build /prod/server ./server
 COPY --from=build /app/client/dist ./client/dist
+
+# the metadata cache, writable by the app since /manga is mounted read-only
+RUN mkdir -p /data/metadata && chown -R node:node /data
 
 USER node
 

@@ -49,7 +49,8 @@ import { storage, bookmarkKey } from "@/assets/storage";
 import { attempt, fetchJson } from "@/assets/utility";
 
 // router params are already decoded, so encode them again when building api urls
-const mangaName = useRoute().params.mangaName as string;
+const route = useRoute();
+const mangaName = route.params.mangaName as string;
 const chapterList = ref<string[]>([]);
 const activeChapter = ref("");
 
@@ -75,12 +76,13 @@ onMounted(async () => {
     }
     chapterList.value = result.data;
 
-    // set first chapter as default
-    const bookmarkedChapter = chapterNameToIndex(
+    // start at the chapter in the url (from the info page), else the bookmark, else the first
+    const requestedChapter = typeof route.query.chapter === "string" ? route.query.chapter : "";
+    const startIndex = chapterNameToIndex(
         chapterList.value,
-        storage.get(bookmarkKey(mangaName), "")
+        requestedChapter || storage.get(bookmarkKey(mangaName), "")
     );
-    const firstChapter = chapterList.value[bookmarkedChapter];
+    const firstChapter = chapterList.value[startIndex];
     activeChapter.value = firstChapter;
     await changeChapter(firstChapter);
 });

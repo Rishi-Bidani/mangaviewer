@@ -1,39 +1,13 @@
+import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
+import { getSettings } from "./settings.ts";
 
 interface IFilesAndFolders {
     files: string[];
     folders: string[];
 }
-
-interface ISettings {
-    /**
-     * @brief The port the server listens on, defaults to 8080
-     */
-    PORT?: number;
-
-    /**
-     * @brief The folder where the mangas are downloaded and stored, either as a path or as
-     * path segments
-     * @example "C:\applications\my mangas" or ["C:", "applications", "my mangas"]
-     */
-    BASE_MANGA_FOLDER: string | string[];
-
-    /**
-     * @brief the mangas or other folders that should be ignored
-     * @example ["bleach", "naruto"]
-     */
-    IGNORE_LIST: string[];
-}
-
-import { dirname } from "node:path";
-// defining __dirname
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-// server/data, from both src/system and dist/system
-const SETTINGS_PATH = path.join(__dirname, "..", "..", "data", "settings.json");
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".bmp"]);
 
@@ -46,40 +20,69 @@ export class PathOutsideBaseError extends Error {
     }
 }
 
-async function readSettings(): Promise<ISettings> {
-    // a missing settings.json is fine, e.g. in the standalone bundle
-    const rawSettings = await fs.readFile(SETTINGS_PATH, "utf8").catch((error) => {
-        if (error.code === "ENOENT") return "";
-        throw error;
-    });
-    const settings: ISettings = rawSettings
-        ? JSON.parse(rawSettings)
-        : { BASE_MANGA_FOLDER: [], IGNORE_LIST: [] };
-
-    // env vars override settings.json (the docker image sets these)
-    const { PORT, BASE_MANGA_FOLDER, IGNORE_LIST } = process.env;
-    if (PORT) {
-        settings.PORT = Number(PORT);
+/**
+ * @returns the parsed file, or undefined if it's missing or unreadable (which is warned about)
+ */
+export async function readJson<T>(file: string): Promise<T | undefined> {
+    try {
+        return JSON.parse(await fs.readFile(file, "utf8")) as T;
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+            console.warn(`Ignoring unreadable "${file}": ${(error as Error).message}`);
+        }
+        return undefined;
     }
-    if (BASE_MANGA_FOLDER) {
-        settings.BASE_MANGA_FOLDER = BASE_MANGA_FOLDER;
-    }
-    // an empty IGNORE_LIST still overrides, so docker users can clear the baked-in list
-    if (IGNORE_LIST !== undefined) {
-        settings.IGNORE_LIST = IGNORE_LIST.split(",")
-            .map((name) => name.trim())
-            .filter(Boolean);
-    }
-
-    return settings;
 }
 
-// settings are read once, on first use (so env vars can still be set before that); restart the
-// server to pick up changes
-let settingsPromise: Promise<ISettings> | undefined;
-function getSettings(): Promise<ISettings> {
-    settingsPromise ??= readSettings();
-    return settingsPromise;
+/**
+ * @brief writes the file without ever leaving it half written: the data goes to a temporary file
+ * next to it, which then replaces it in one step, so a crash keeps either the old or the new file
+ */
+export async function writeFileAtomic(file: string, data: string | Uint8Array): Promise<void> {
+    const temporary = `${file}.${randomUUID()}.tmp`;
+    try {
+        const handle = await fs.open(temporary, "w");
+        try {
+            await handle.writeFile(data);
+            // on disk before the rename, or a power cut could still leave an empty file behind
+            await handle.sync();
+        } finally {
+            await handle.close();
+        }
+        await renameWithRetry(temporary, file);
+    } catch (error) {
+        await fs.rm(temporary, { force: true });
+        throw error;
+    }
+}
+
+/**
+ * @brief deletes temporary files writeFileAtomic left in the folder when the server was killed
+ * mid-write; only call this when nothing is writing there yet, e.g. at startup
+ */
+export async function removeLeftoverTemporaryFiles(folder: string): Promise<void> {
+    const files = await fs.readdir(folder).catch(() => []);
+    const leftovers = files.filter((file) => TEMPORARY_FILE.test(file));
+    await Promise.all(leftovers.map((file) => fs.rm(path.join(folder, file), { force: true })));
+}
+
+// <file>.<uuid>.tmp, as named by writeFileAtomic
+const TEMPORARY_FILE = /\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.tmp$/;
+
+// windows refuses to replace a file that another program (e.g. a virus scanner) briefly has open
+async function renameWithRetry(from: string, to: string): Promise<void> {
+    for (let attempt = 1; ; attempt++) {
+        try {
+            await fs.rename(from, to);
+            return;
+        } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            if (attempt >= 5 || !(code === "EPERM" || code === "EBUSY" || code === "EACCES")) {
+                throw error;
+            }
+            await sleep(50 * attempt);
+        }
+    }
 }
 
 async function getFilesAndFolders(dir: string): Promise<IFilesAndFolders> {
@@ -104,17 +107,40 @@ async function resolveInBase(...segments: string[]): Promise<string> {
     return target;
 }
 
+/**
+ * @returns the parsed file, or undefined if it is missing or unreadable (warning about the latter)
+ */
+
 export default class FileHandler {
     static get port(): Promise<number> {
-        return getSettings().then((settings) => settings.PORT || 8080);
+        return getSettings().then((settings) => settings.PORT);
     }
 
     static get baseFolder(): Promise<string> {
-        return getSettings().then((settings) => path.join(...[settings.BASE_MANGA_FOLDER].flat()));
+        return getSettings().then((settings) => settings.BASE_MANGA_FOLDER);
     }
 
     static get ignoreList(): Promise<string[]> {
         return getSettings().then((settings) => settings.IGNORE_LIST);
+    }
+
+    static get fetchMetadata(): Promise<boolean> {
+        return getSettings().then((settings) => settings.FETCH_METADATA);
+    }
+
+    static get metadataFolder(): Promise<string> {
+        return getSettings().then((settings) => settings.METADATA_FOLDER);
+    }
+
+    /**
+     * @returns the absolute path of the manga's folder, throwing ENOENT/ENOTDIR if it isn't one
+     */
+    static async getMangaFolder(manga: string): Promise<string> {
+        const folder = await resolveInBase(manga);
+        if (!(await fs.stat(folder)).isDirectory()) {
+            throw Object.assign(new Error(`${manga} is not a folder`), { code: "ENOTDIR" });
+        }
+        return folder;
     }
 
     static async getMangaList(): Promise<string[]> {

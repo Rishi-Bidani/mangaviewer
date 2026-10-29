@@ -4,8 +4,9 @@ import { fileURLToPath } from "node:url";
 import cors from "cors";
 import express from "express";
 import apiRoutes from "./api.ts";
-import FileHandler from "./system/filesystem.ts";
+import FileHandler, { removeLeftoverTemporaryFiles } from "./system/filesystem.ts";
 import getIPAddresses from "./system/getip.ts";
+import { formatSettings, getResolvedSettings, InvalidSettingError } from "./system/settings.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,13 +29,25 @@ export async function startServer({
     configHint = "Set BASE_MANGA_FOLDER in server/data/settings.json or as an environment variable.",
 }: IServerOptions = {}) {
     const app = express();
-    const PORT = await FileHandler.port;
 
+    // printed before anything can fail, so a wrong value and where it came from are visible
+    const settings = await getResolvedSettings().catch((error) => {
+        if (!(error instanceof InvalidSettingError)) throw error;
+        console.error(`Invalid setting: ${error.message}`);
+        process.exit(1);
+    });
+    console.log(formatSettings(settings));
+
+    const PORT = await FileHandler.port;
     const BASE_FOLDER = await FileHandler.baseFolder;
     if (!(await stat(BASE_FOLDER).catch(() => null))?.isDirectory()) {
-        console.error(`Manga folder "${BASE_FOLDER}" does not exist. ${configHint}`);
+        const problem = BASE_FOLDER
+            ? `Manga folder "${BASE_FOLDER}" does not exist.`
+            : "No manga folder is set.";
+        console.error(`${problem} ${configHint}`);
         process.exit(1);
     }
+    await removeLeftoverTemporaryFiles(await FileHandler.metadataFolder);
     app.use("/images", express.static(BASE_FOLDER));
 
     // make built files available

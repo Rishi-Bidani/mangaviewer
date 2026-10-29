@@ -55,8 +55,8 @@ mangaviewer-win-x64.exe --dir "D:\manga" --port 8080 --ignore "kenja no mago,man
 ```
 
 Without `--dir` it serves the folder it's started from, so you can also drop it into your manga
-folder and double-click it. `--help` lists the options; the `BASE_MANGA_FOLDER`, `PORT` and
-`IGNORE_LIST` environment variables work too.
+folder and double-click it. `--help` lists the options; the `BASE_MANGA_FOLDER`, `PORT`,
+`IGNORE_LIST`, `FETCH_METADATA` and `METADATA_FOLDER` environment variables work too, but flags win.
 
 On Linux and macOS, make it executable first with `chmod +x mangaviewer-*`. macOS blocks downloaded
 apps that aren't notarized: allow it under System Settings → Privacy & Security, or run
@@ -80,9 +80,20 @@ Macs won't run unsigned ones (sign them with `codesign --sign - <file>`).
 }
 ```
 
-The `PORT`, `BASE_MANGA_FOLDER` and `IGNORE_LIST` (comma separated) environment variables override these.
-To ignore a folder whose name contains a comma, list it in `settings.json` and don't set the
-`IGNORE_LIST` variable.
+Environment variables with the same names override these (`IGNORE_LIST` comma separated,
+`FETCH_METADATA` as `true`/`false`). To ignore a folder whose name contains a comma, list it in
+`settings.json` and don't set the `IGNORE_LIST` variable.
+
+At startup the server prints every setting, its value and where it came from:
+
+```
+Settings (command line > environment > settings.json > default):
+   PORT               8099                                (environment)
+   BASE_MANGA_FOLDER  D:\manga                            (settings.json)
+   IGNORE_LIST        "kenja no mago", "mangadownloader"  (settings.json)
+   FETCH_METADATA     false                               (default)
+   METADATA_FOLDER    ...\server\data\metadata            (default)
+```
 
 > [!NOTE]
 > In development (`pnpm dev`, or the "Mangaviewer (dev)" launch config), the Vite dev server
@@ -98,6 +109,36 @@ To ignore a folder whose name contains a comma, list it in `settings.json` and d
 | `pnpm dev` | Runs the server and the Vite dev server with live reload |
 | `pnpm bundle` | Builds the standalone executables into `release/` (needs Node.js 25.7+) |
 | `pnpm lint` / `pnpm format` | Lints / formats both packages |
+
+### Covers and details
+
+The home page shows a cover for every manga. By default it's the first page of the first chapter,
+or a `cover.jpg` / `.png` / `.webp` you put in the manga's folder. Covers can be turned off per
+title on the settings page (the cog on the home page); that choice is saved on the server, next to
+the metadata cache, so it applies on every device.
+
+Covers, titles, authors, genres and descriptions can also be looked up on
+[AniList](https://anilist.co). This is **off by default** because it sends your manga folder names
+to AniList. Turn it on with `"FETCH_METADATA": true` in `settings.json`, `FETCH_METADATA=true` in
+`.env` (Docker) or `--metadata` (standalone executable).
+
+- Each manga is looked up once, a few seconds apart, and the result is cached in
+  `server/data/metadata` (Docker: the `metadata` volume; standalone: `.mangaviewer/metadata` in
+  the manga folder). To look titles up again, use the refetch buttons on the settings page.
+- The search uses the folder name without tags like `[Colored]` or `(2019)`. Names shorter than 5
+  characters aren't looked up, since they match too many things.
+- Wrong match, not found, or a short name? Use the 🔗 button on the settings page to paste the
+  manga's AniList link or id (`anilist.co/manga/<id>`). It opens by itself when refetching a single
+  title finds nothing.
+- Or add a `metadata.json` to the manga's folder, which takes priority over the settings page. Any
+  field other than `anilistId` overrides what AniList returned:
+
+```json
+{
+    "anilistId": 30013,
+    "title": "One Piece (Colored)"
+}
+```
 
 ## TODO
 

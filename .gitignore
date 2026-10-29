@@ -3,3 +3,6 @@
 dist/
 .env
 release/
+
+# cached AniList metadata and covers
+server/data/metadata/

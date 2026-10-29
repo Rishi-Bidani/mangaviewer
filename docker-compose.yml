@@ -11,5 +11,11 @@ services:
       - "${PORT:-8080}:8080"
     environment:
       IGNORE_LIST: ${IGNORE_LIST:-}
+      FETCH_METADATA: ${FETCH_METADATA:-false}
     volumes:
       - "${MANGA_DIR:?set MANGA_DIR in .env to the folder your manga is in}:/manga:ro"
+      # keeps fetched covers and details across container updates
+      - metadata:/data
+
+volumes:
+  metadata:

@@ -1,5 +1,6 @@
 {
     "PORT": 8080,
     "BASE_MANGA_FOLDER": "D:\\manga",
-    "IGNORE_LIST": ["kenja no mago", "mangadownloader"]
+    "IGNORE_LIST": ["kenja no mago", "mangadownloader"],
+    "FETCH_METADATA": true
 }

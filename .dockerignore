@@ -7,3 +7,4 @@ Dockerfile
 docker-compose.yml
 .env
 .env.example
+server/data/metadata
