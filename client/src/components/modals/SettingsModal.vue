@@ -113,10 +113,10 @@ const props = defineProps({
 });
 
 function init() {
-    imageWidth.value = storage.get("imageWidth", storage.get("imageWidth", 100));
-    imageBrightness.value = storage.get("imageBrightness", storage.get("imageBrightness", 100));
-    alignment.value = storage.get("alignment", storage.get("alignment", "center"));
-    imageSpacing.value = storage.get("imageSpacing", storage.get("imageSpacing", 0));
+    imageWidth.value = storage.get("imageWidth", 100);
+    imageBrightness.value = storage.get("imageBrightness", 100);
+    alignment.value = storage.get("alignment", "center");
+    imageSpacing.value = storage.get("imageSpacing", 0);
     bookmarkedChapter.value = storage.get(bookmarkKey(props.mangaName), "");
 
     emits("updateImageWidth", imageWidth.value);

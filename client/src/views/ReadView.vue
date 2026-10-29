@@ -9,6 +9,13 @@
             @next-chapter="nextChapter"
         />
         <v-main>
+            <v-alert
+                v-if="errorMessage"
+                type="error"
+                variant="tonal"
+                class="ma-4"
+                :text="errorMessage"
+            />
             <div ref="mainContainer" class="d-flex image-container">
                 <div class="image-container d-flex flex-column" ref="imageContainer">
                     <img
@@ -36,25 +43,37 @@
 import SideBottomBar from "@components/navigation/SideBottomBar.vue";
 import SettingsModal from "@components/modals/SettingsModal.vue";
 
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { storage, bookmarkKey } from "@/assets/storage";
-import { attempt } from "@/assets/utility";
+import { attempt, fetchJson } from "@/assets/utility";
 
 // router params are already decoded, so encode them again when building api urls
 const mangaName = useRoute().params.mangaName as string;
-const chapterList = ref([]);
+const chapterList = ref<string[]>([]);
 const activeChapter = ref("");
 
-const chapterImages = ref([]);
+const chapterImages = ref<string[]>([]);
+const errorMessage = ref("");
+
+// in-flight chapter request, aborted when a newer chapter is requested
+let chapterRequest: AbortController | null = null;
 
 onMounted(async () => {
     // get chapter list from server
     const chapterListURL = `/api/mangas/${encodeURIComponent(mangaName)}/chapters`;
 
-    const response = await fetch(chapterListURL);
-    const data = await response.json();
-    chapterList.value = data;
+    const result = await attempt(fetchJson<string[]>(chapterListURL));
+    if ("error" in result) {
+        console.error("Error fetching chapter list:", result.error);
+        errorMessage.value = `Could not load chapters for "${mangaName}".`;
+        return;
+    }
+    if (result.data.length === 0) {
+        errorMessage.value = `"${mangaName}" has no chapters.`;
+        return;
+    }
+    chapterList.value = result.data;
 
     // set first chapter as default
     const bookmarkedChapter = chapterNameToIndex(
@@ -66,18 +85,31 @@ onMounted(async () => {
     await changeChapter(firstChapter);
 });
 
+onUnmounted(() => {
+    chapterRequest?.abort();
+});
+
 async function changeChapter(chapter: string) {
+    chapterRequest?.abort();
+    const controller = new AbortController();
+    chapterRequest = controller;
+
     const chapterURL = `/api/mangas/${encodeURIComponent(mangaName)}/chapters/${encodeURIComponent(
         chapter
     )}/images`;
-    const response = await attempt(fetch(chapterURL));
-    if ("error" in response) {
-        console.error("Error fetching chapter images:", response);
+    const result = await attempt(fetchJson<string[]>(chapterURL, { signal: controller.signal }));
+    // a newer chapter was requested while this one was loading
+    if (controller.signal.aborted) {
         return;
     }
-    const data = await response.data.json();
+    if ("error" in result) {
+        console.error("Error fetching chapter images:", result.error);
+        errorMessage.value = `Could not load "${chapter}".`;
+        return;
+    }
+    errorMessage.value = "";
     window.scrollTo(0, 0);
-    chapterImages.value = data;
+    chapterImages.value = result.data;
     activeChapter.value = chapter;
 }
 
@@ -90,8 +122,8 @@ function chapterNameToIndex(chapterList: string[], chapter: string) {
 }
 
 async function previousChapter() {
-    const index = chapterList.value.indexOf(activeChapter.value as never);
-    if (index === 0) {
+    const index = chapterList.value.indexOf(activeChapter.value);
+    if (index <= 0) {
         return;
     }
     const previousChapter = chapterList.value[index - 1];
@@ -99,7 +131,7 @@ async function previousChapter() {
 }
 
 async function nextChapter() {
-    const index = chapterList.value.indexOf(activeChapter.value as never);
+    const index = chapterList.value.indexOf(activeChapter.value);
     if (index === chapterList.value.length - 1) {
         return;
     }
@@ -132,59 +164,6 @@ function changeImageAlignment(alignment: string) {
 function changeImageSpacing(spacing: number) {
     imageContainer.value!.style.gap = `${spacing}px`;
 }
-
-// const chapterList = [
-//     "Chapter 1",
-//     "Chapter 2",
-//     "Chapter 3",
-//     "Chapter 4",
-//     "Chapter 5",
-//     "Chapter 6",
-//     "Chapter 7",
-//     "Chapter 8",
-//     "Chapter 9",
-//     "Chapter 10",
-//     "Chapter 11",
-//     "Chapter 12",
-//     "Chapter 13",
-//     "Chapter 14",
-//     "Chapter 15",
-//     "Chapter 16",
-//     "Chapter 17",
-//     "Chapter 18",
-//     "Chapter 19",
-//     "Chapter 20",
-//     "Chapter 21",
-//     "Chapter 22",
-//     "Chapter 23",
-//     "Chapter 24",
-//     "Chapter 25",
-//     "Chapter 26",
-//     "Chapter 27",
-//     "Chapter 28",
-//     "Chapter 29",
-//     "Chapter 30",
-//     "Chapter 31",
-//     "Chapter 32",
-//     "Chapter 33",
-//     "Chapter 34",
-//     "Chapter 35",
-//     "Chapter 36",
-//     "Chapter 37",
-//     "Chapter 38",
-//     "Chapter 39",
-//     "Chapter 40",
-//     "Chapter 41",
-//     "Chapter 42",
-//     "Chapter 43",
-//     "Chapter 44",
-//     "Chapter 45",
-//     "Chapter 46",
-//     "Chapter 47",
-//     "Chapter 48",
-//     "Chapter 49",
-//     "Chapter 50",
-// ];
 </script>
 
 <style scoped>

@@ -55,3 +55,12 @@ export function withFallback<T, E = unknown>(
 
     return result.data;
 }
+
+// fetch wrapper that rejects on non-2xx responses instead of returning the error body as data
+export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+    const response = await fetch(url, init);
+    if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText} (${url})`);
+    }
+    return (await response.json()) as T;
+}

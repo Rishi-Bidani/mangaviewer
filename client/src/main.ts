@@ -20,13 +20,10 @@ const router = createRouter({
 
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
-import * as components from "vuetify/components";
-import * as directives from "vuetify/directives";
 import "@mdi/font/css/materialdesignicons.css";
 
+// components and directives are imported on demand by vite-plugin-vuetify
 const vuetify = createVuetify({
-    components,
-    directives,
     theme: {
         defaultTheme: "dark",
     },

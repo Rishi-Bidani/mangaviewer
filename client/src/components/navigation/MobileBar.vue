@@ -40,7 +40,7 @@
     </v-bottom-navigation>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 
 const emit = defineEmits(["settings-click", "next-chapter", "previous-chapter", "chapter-click"]);
 
@@ -95,6 +95,10 @@ function onScroll() {
 onMounted(() => {
     window.addEventListener("scroll", onScroll);
     tempActiveChapter.value = props.activeChapter;
+});
+
+onUnmounted(() => {
+    window.removeEventListener("scroll", onScroll);
 });
 
 watch(

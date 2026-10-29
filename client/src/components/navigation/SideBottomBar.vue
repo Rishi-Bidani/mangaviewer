@@ -3,7 +3,6 @@
     <PCBar :active-chapter="activeChapter" :chapter-list="props.chapterList" v-else />
 </template>
 <script setup lang="ts">
-import { onMounted } from "vue";
 import { useDisplay } from "vuetify";
 
 import MobileBar from "@components/navigation/MobileBar.vue";
@@ -19,15 +18,6 @@ const props = defineProps({
         type: String,
         default: "",
     },
-});
-
-onMounted(() => {
-    console.log(mobile.value); // false
-
-    // check if viewport size changed
-    // window.addEventListener("resize", () => {
-    //     console.log(mobile.value);
-    // });
 });
 </script>
 
