@@ -4,6 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { ExeTarget } from "@tsdown/exe";
 import { defineConfig } from "tsdown";
+import { readMigrations } from "./src/system/migrations.ts";
 
 // the Node.js runtime embedded in every executable (25.7+ needed for ESM support)
 const NODE_VERSION = "26.12.0";
@@ -16,6 +17,7 @@ const TARGETS: ExeTarget[] = [
 ];
 
 const CLIENT_DIST = path.join(import.meta.dirname, "..", "client", "dist");
+const MIGRATIONS = path.join(import.meta.dirname, "drizzle");
 // fallback font formats only very old browsers request, current ones use the .woff2
 const SKIPPED_EXTENSIONS = new Set([".eot", ".ttf"]);
 
@@ -47,6 +49,23 @@ function clientAssets() {
     };
 }
 
+/**
+ * @brief provides "virtual:migrations", the database migrations in server/drizzle, oldest first
+ */
+function migrations() {
+    const id = "\0virtual:migrations";
+    return {
+        name: "migrations",
+        resolveId(source: string) {
+            return source === "virtual:migrations" ? id : null;
+        },
+        load(loadId: string) {
+            if (loadId !== id) return null;
+            return `export default ${JSON.stringify(readMigrations(MIGRATIONS))};`;
+        },
+    };
+}
+
 export default defineConfig({
     entry: { mangaviewer: "src/standalone.ts" },
     format: "esm",
@@ -60,6 +79,6 @@ export default defineConfig({
     minify: true,
     // bundle express & co. too, so the output has no node_modules to ship
     deps: { alwaysBundle: [/.*/], onlyBundle: false },
-    plugins: [clientAssets()],
+    plugins: [clientAssets(), migrations()],
     exe: { outDir: "../release", targets: TARGETS },
 });

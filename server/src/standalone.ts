@@ -3,8 +3,10 @@ import * as path from "node:path";
 import { parseArgs } from "node:util";
 // the built client, embedded at bundle time by the plugin in tsdown.config.ts
 import clientAssets from "virtual:client-assets";
+// likewise, there's no server/drizzle next to the executable
+import migrations from "virtual:migrations";
 import { startServer } from "./app.ts";
-import { configureSettings, InvalidSettingError, parseList, parsePort } from "./system/settings.ts";
+import { getEnv, InvalidEnvError, loadEnvFile } from "./system/env.ts";
 
 const HELP = `Usage: mangaviewer [options]
 
@@ -12,12 +14,15 @@ Options:
   -d, --dir <folder>      folder containing one sub-folder per manga (default: current folder)
   -p, --port <port>       port to open the site on (default: 8080)
   -i, --ignore <names>    comma separated folder names to hide
-  -m, --metadata          look up covers and details on AniList (sends folder names to AniList),
-                          cached in <folder>/.mangaviewer/metadata
+  -m, --metadata          look up covers and details (sends folder names to the metadata source,
+                          AniList by default), cached in <folder>/.mangaviewer/metadata
+  -e, --extensions <ids>  comma separated extensions to run from <folder>/.mangaviewer/extensions;
+                          these run with full access to your computer, only use ones you trust
   -h, --help              show this help
 
-The BASE_MANGA_FOLDER, PORT, IGNORE_LIST, FETCH_METADATA and METADATA_FOLDER environment
-variables work too.`;
+The BASE_MANGA_FOLDER, PORT, IGNORE_LIST, FETCH_METADATA, METADATA_FOLDER, EXTENSIONS_FOLDER,
+ENABLED_EXTENSIONS and ALLOWED_HOSTS environment variables work too, also from a .env file next to
+the executable.`;
 
 function parseFlags() {
     try {
@@ -27,6 +32,7 @@ function parseFlags() {
                 port: { type: "string", short: "p" },
                 ignore: { type: "string", short: "i" },
                 metadata: { type: "boolean", short: "m" },
+                extensions: { type: "string", short: "e" },
                 help: { type: "boolean", short: "h" },
             },
         }).values;
@@ -43,29 +49,32 @@ if (values.help) {
     process.exit(0);
 }
 
+const flags = {
+    BASE_MANGA_FOLDER: values.dir,
+    PORT: values.port,
+    IGNORE_LIST: values.ignore,
+    FETCH_METADATA: values.metadata ? "true" : undefined,
+    ENABLED_EXTENSIONS: values.extensions,
+};
+// flags win over env vars and the .env file
+for (const [name, value] of Object.entries(flags)) {
+    if (value !== undefined) process.env[name] = value;
+}
+loadEnvFile(path.join(path.dirname(process.execPath), ".env"));
+
+const baseFolder = process.env.BASE_MANGA_FOLDER || process.cwd();
+process.env.BASE_MANGA_FOLDER = baseFolder;
+// there's no server/data next to the executable, so cache inside the manga folder (hidden, so it
+// isn't listed as a manga)
+process.env.METADATA_FOLDER ||= path.join(baseFolder, ".mangaviewer", "metadata");
+process.env.EXTENSIONS_FOLDER ||= path.join(baseFolder, ".mangaviewer", "extensions");
+
 try {
-    configureSettings({
-        // flags win over env vars and settings.json
-        commandLine: {
-            BASE_MANGA_FOLDER: values.dir,
-            PORT: values.port === undefined ? undefined : parsePort(values.port, "--port"),
-            IGNORE_LIST: values.ignore === undefined ? undefined : parseList(values.ignore),
-            FETCH_METADATA: values.metadata || undefined,
-        },
-        defaults: (explicit) => {
-            const baseFolder = explicit.BASE_MANGA_FOLDER ?? process.cwd();
-            return {
-                BASE_MANGA_FOLDER: baseFolder,
-                // there's no server/data next to the executable, so cache inside the manga
-                // folder (hidden, so it isn't listed as a manga)
-                METADATA_FOLDER: path.join(baseFolder, ".mangaviewer", "metadata"),
-            };
-        },
-    });
+    getEnv();
 } catch (error) {
-    if (!(error instanceof InvalidSettingError)) throw error;
+    if (!(error instanceof InvalidEnvError)) throw error;
     console.error(`${error.message}\n\n${HELP}`);
     process.exit(2);
 }
 
-await startServer({ clientAssets, configHint: "Pass the folder with --dir." });
+await startServer({ clientAssets, migrations, configHint: "Pass the folder with --dir." });

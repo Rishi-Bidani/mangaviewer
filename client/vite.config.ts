@@ -17,9 +17,9 @@ export default defineConfig({
     },
     server: {
         proxy: {
+            // keeps the browser's host, which the server compares with where a request came from
             "/api": {
                 target: "http://127.0.0.1:8080",
-                changeOrigin: true,
             },
             "/images": {
                 target: "http://127.0.0.1:8080",

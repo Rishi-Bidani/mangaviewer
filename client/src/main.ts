@@ -1,5 +1,4 @@
 import { createApp } from "vue";
-// createWebHistory
 import { createRouter, createWebHashHistory } from "vue-router";
 
 import "./style.css";
@@ -19,7 +18,7 @@ const router = createRouter({
         // ?chapter=<name> opens that chapter instead of the bookmarked one
         { path: "/read/:mangaName", name: "read", component: ReadView },
         { path: "/manga/:mangaName", name: "manga", component: MangaInfoView },
-        // ?link=<manga name> opens the AniList entry dialog for that manga
+        // ?link=<manga name> opens the metadata match dialog for that manga
         { path: "/settings", name: "settings", component: SettingsView },
     ],
 });

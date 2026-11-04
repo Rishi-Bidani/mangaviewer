@@ -19,5 +19,5 @@
         "forceConsistentCasingInFileNames": true,
         "skipLibCheck": true
     },
-    "include": ["src", "tsdown.config.ts"]
+    "include": ["src", "tsdown.config.ts", "drizzle.config.ts"]
 }

@@ -40,6 +40,9 @@ IGNORE_LIST=kenja no mago,mangadownloader    # comma separated folders to hide
    pulling it) and open `http://<server-ip>:<PORT>`.
 
 > [!NOTE]
+> It's configured only through these environment variables (e.g. from a `.env` file, or the
+> environment editor in Dockge or Portainer). The container log starts with every setting.
+>
 > `IGNORE_LIST` is split on commas, so a folder whose name contains a comma can't be ignored this
 > way. Rename the folder, or move it out of `MANGA_DIR`.
 
@@ -56,7 +59,9 @@ mangaviewer-win-x64.exe --dir "D:\manga" --port 8080 --ignore "kenja no mago,man
 
 Without `--dir` it serves the folder it's started from, so you can also drop it into your manga
 folder and double-click it. `--help` lists the options; the `BASE_MANGA_FOLDER`, `PORT`,
-`IGNORE_LIST`, `FETCH_METADATA` and `METADATA_FOLDER` environment variables work too, but flags win.
+`IGNORE_LIST`, `FETCH_METADATA`, `METADATA_FOLDER`, `EXTENSIONS_FOLDER`, `ENABLED_EXTENSIONS` and
+`ALLOWED_HOSTS` environment variables work too, also from a `.env` file next to the executable, but
+flags win.
 
 On Linux and macOS, make it executable first with `chmod +x mangaviewer-*`. macOS blocks downloaded
 apps that aren't notarized: allow it under System Settings → Privacy & Security, or run
@@ -70,29 +75,34 @@ Macs won't run unsigned ones (sign them with `codesign --sign - <file>`).
 
 1. Install Node.js 24+ and pnpm 12 (`npm install -g pnpm@12`, or `corepack enable`), then run
    `pnpm install` in the repository root.
-2. Update `server/data/settings.json`:
+2. Copy `server/.env.example` to `server/.env` and edit it:
 
-```json
-{
-    "PORT": 8080,
-    "BASE_MANGA_FOLDER": "D:\\manga",
-    "IGNORE_LIST": ["kenja no mago"]
-}
+```bash
+PORT=8080
+BASE_MANGA_FOLDER=D:\manga
+IGNORE_LIST=kenja no mago,mangadownloader
 ```
 
-Environment variables with the same names override these (`IGNORE_LIST` comma separated,
-`FETCH_METADATA` as `true`/`false`). To ignore a folder whose name contains a comma, list it in
-`settings.json` and don't set the `IGNORE_LIST` variable.
+Environment variables with the same names override these, and the server refuses to start if a value
+isn't valid. Restart it after changing the file. `IGNORE_LIST` is split on commas, so a folder whose
+name contains a comma can't be ignored: rename it, or move it out of the manga folder.
 
-At startup the server prints every setting, its value and where it came from:
+If you open the site on a domain name, such as through a reverse proxy, add it to `ALLOWED_HOSTS`,
+otherwise the API refuses it. IP addresses, names without a dot and `.local` names always work. This
+stops other websites open in your browser from using the API.
+
+At startup the server prints every setting and its value:
 
 ```
-Settings (command line > environment > settings.json > default):
-   PORT               8099                                (environment)
-   BASE_MANGA_FOLDER  D:\manga                            (settings.json)
-   IGNORE_LIST        "kenja no mago", "mangadownloader"  (settings.json)
-   FETCH_METADATA     false                               (default)
-   METADATA_FOLDER    ...\server\data\metadata            (default)
+Settings:
+   PORT                8099
+   BASE_MANGA_FOLDER   D:\manga
+   IGNORE_LIST         "kenja no mago", "mangadownloader"
+   FETCH_METADATA      false
+   METADATA_FOLDER     ...\server\data\metadata
+   EXTENSIONS_FOLDER   ...\server\data\extensions
+   ENABLED_EXTENSIONS  (none)
+   ALLOWED_HOSTS       (none)
 ```
 
 > [!NOTE]
@@ -114,36 +124,61 @@ Settings (command line > environment > settings.json > default):
 
 The home page shows a cover for every manga. By default it's the first page of the first chapter,
 or a `cover.jpg` / `.png` / `.webp` you put in the manga's folder. Covers can be turned off per
-title on the settings page (the cog on the home page); that choice is saved on the server, next to
-the metadata cache, so it applies on every device.
+title on the settings page (the cog on the home page); that choice is saved in the server's database,
+so it applies on every device.
 
 Covers, titles, authors, genres and descriptions can also be looked up on
 [AniList](https://anilist.co). This is **off by default** because it sends your manga folder names
-to AniList. Turn it on with `"FETCH_METADATA": true` in `settings.json`, `FETCH_METADATA=true` in
-`.env` (Docker) or `--metadata` (standalone executable).
+to AniList. Turn it on with `FETCH_METADATA=true` in `server/.env` (or `.env` with Docker), or
+`--metadata` (standalone executable).
 
-- Each manga is looked up once, a few seconds apart, and the result is cached in
-  `server/data/metadata` (Docker: the `metadata` volume; standalone: `.mangaviewer/metadata` in
-  the manga folder). To look titles up again, use the refetch buttons on the settings page.
+- Each manga is looked up once, a few seconds apart, and the result is cached in `server/data/metadata`
+  (Docker: the `metadata` volume; standalone: `.mangaviewer/metadata` in the manga folder). To look
+  titles up again, use the refetch buttons on the settings page.
 - The search uses the folder name without tags like `[Colored]` or `(2019)`. Names shorter than 5
   characters aren't looked up, since they match too many things.
-- Wrong match, not found, or a short name? Use the 🔗 button on the settings page to paste the
-  manga's AniList link or id (`anilist.co/manga/<id>`). It opens by itself when refetching a single
-  title finds nothing.
+- Wrong match, not found, or a short name? Use the 🔗 button on the settings page to search for the
+  manga or paste its link or id (`anilist.co/manga/<id>`). It opens by itself when refetching a
+  single title finds nothing.
 - Or add a `metadata.json` to the manga's folder, which takes priority over the settings page. Any
-  field other than `anilistId` overrides what AniList returned:
+  field other than `match` overrides what the source returned:
 
 ```json
 {
-    "anilistId": 30013,
+    "match": { "source": "anilist", "id": "30013" },
     "title": "One Piece (Colored)"
 }
 ```
 
+### Where your data is kept
+
+The metadata folder above holds `mangaviewer.db`, a SQLite database with the fetched details, your
+preferences, sync progress and extension settings (which includes sign ins and API keys, as plain
+text), next to the downloaded covers. Back up that folder to keep all of it; your manga folder is only
+ever read, apart from the standalone executable keeping its `.mangaviewer` folder there.
+
+To change the tables, edit `server/src/system/schema.ts` and run
+`pnpm --filter @mangaviewer/server db:generate`. Commit what it adds to `server/drizzle`; existing
+databases are updated when the server starts.
+
+### Other metadata sources
+
+AniList is the default source and MyAnimeList is built in too; pick one on the settings page. You
+can add others, or write your own in TypeScript, with [extensions](docs/extensions.md). They're kept
+in `EXTENSIONS_FOLDER` and only run once they're listed in `ENABLED_EXTENSIONS`.
+
+### Syncing your progress
+
+Reading a chapter to its end can update your MyAnimeList list and an Excel file with a row per manga,
+in any combination; switch them on on the settings page. See
+[syncing progress](docs/extensions.md#syncing-progress).
+
+> [!WARNING]
+> Extensions are ordinary code with full access to the server, so only run ones you trust.
+
 ## TODO
 
 -   [ ] Add persistent bookmarks
--   [ ] Sync with MAL
 
 ## Screenshots 📸
 

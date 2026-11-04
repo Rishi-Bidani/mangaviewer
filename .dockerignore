@@ -5,6 +5,9 @@
 .vscode
 Dockerfile
 docker-compose.yml
-.env
-.env.example
+**/.env
+**/.env.example
 server/data/metadata
+server/data/extensions
+extensions
+docs

@@ -1,0 +1,386 @@
+{
+    "version": "7",
+    "dialect": "sqlite",
+    "id": "73b03d91-9cd8-4d0f-a204-2f485b70b425",
+    "prevIds": ["00000000-0000-0000-0000-000000000000"],
+    "ddl": [
+        {
+            "name": "app_settings",
+            "entityType": "tables"
+        },
+        {
+            "name": "extension_data",
+            "entityType": "tables"
+        },
+        {
+            "name": "extension_settings",
+            "entityType": "tables"
+        },
+        {
+            "name": "manga_metadata",
+            "entityType": "tables"
+        },
+        {
+            "name": "manga_preferences",
+            "entityType": "tables"
+        },
+        {
+            "name": "sync_progress",
+            "entityType": "tables"
+        },
+        {
+            "name": "sync_targets",
+            "entityType": "tables"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "key",
+            "entityType": "columns",
+            "table": "app_settings"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "value",
+            "entityType": "columns",
+            "table": "app_settings"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "extension_id",
+            "entityType": "columns",
+            "table": "extension_data"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "key",
+            "entityType": "columns",
+            "table": "extension_data"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "value",
+            "entityType": "columns",
+            "table": "extension_data"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "extension_id",
+            "entityType": "columns",
+            "table": "extension_settings"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "key",
+            "entityType": "columns",
+            "table": "extension_settings"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "value",
+            "entityType": "columns",
+            "table": "extension_settings"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "manga",
+            "entityType": "columns",
+            "table": "manga_metadata"
+        },
+        {
+            "type": "integer",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "version",
+            "entityType": "columns",
+            "table": "manga_metadata"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "fetched_at",
+            "entityType": "columns",
+            "table": "manga_metadata"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "lookup_key",
+            "entityType": "columns",
+            "table": "manga_metadata"
+        },
+        {
+            "type": "integer",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "found",
+            "entityType": "columns",
+            "table": "manga_metadata"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "details",
+            "entityType": "columns",
+            "table": "manga_metadata"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "cover",
+            "entityType": "columns",
+            "table": "manga_metadata"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "manga",
+            "entityType": "columns",
+            "table": "manga_preferences"
+        },
+        {
+            "type": "integer",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "show_cover",
+            "entityType": "columns",
+            "table": "manga_preferences"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "match_source",
+            "entityType": "columns",
+            "table": "manga_preferences"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "match_id",
+            "entityType": "columns",
+            "table": "manga_preferences"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "target_id",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "text",
+            "notNull": true,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "manga",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "synced_chapter",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "real",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "synced_chapter_number",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "synced_at",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "pending_chapter",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "real",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "pending_chapter_number",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "pending_at",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "problem_kind",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "problem_message",
+            "entityType": "columns",
+            "table": "sync_progress"
+        },
+        {
+            "type": "text",
+            "notNull": false,
+            "autoincrement": false,
+            "default": null,
+            "generated": null,
+            "name": "id",
+            "entityType": "columns",
+            "table": "sync_targets"
+        },
+        {
+            "columns": ["extension_id", "key"],
+            "nameExplicit": false,
+            "name": "extension_data_pk",
+            "entityType": "pks",
+            "table": "extension_data"
+        },
+        {
+            "columns": ["extension_id", "key"],
+            "nameExplicit": false,
+            "name": "extension_settings_pk",
+            "entityType": "pks",
+            "table": "extension_settings"
+        },
+        {
+            "columns": ["target_id", "manga"],
+            "nameExplicit": false,
+            "name": "sync_progress_pk",
+            "entityType": "pks",
+            "table": "sync_progress"
+        },
+        {
+            "columns": ["key"],
+            "nameExplicit": false,
+            "name": "app_settings_pk",
+            "table": "app_settings",
+            "entityType": "pks"
+        },
+        {
+            "columns": ["manga"],
+            "nameExplicit": false,
+            "name": "manga_metadata_pk",
+            "table": "manga_metadata",
+            "entityType": "pks"
+        },
+        {
+            "columns": ["manga"],
+            "nameExplicit": false,
+            "name": "manga_preferences_pk",
+            "table": "manga_preferences",
+            "entityType": "pks"
+        },
+        {
+            "columns": ["id"],
+            "nameExplicit": false,
+            "name": "sync_targets_pk",
+            "table": "sync_targets",
+            "entityType": "pks"
+        }
+    ],
+    "renames": []
+}

@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            // express api (port from server/data/settings.json), node runs the .ts files
+            // express api (port from server/.env), node runs the .ts files
             // directly and restarts on changes
             "name": "Server",
             "type": "node",

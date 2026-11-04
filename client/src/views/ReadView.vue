@@ -18,13 +18,25 @@
             />
             <div ref="mainContainer" class="d-flex image-container">
                 <div class="image-container d-flex flex-column" ref="imageContainer">
-                    <img
-                        v-for="image in chapterImages"
-                        class="mx-5"
-                        :src="image"
-                        :key="image"
-                        alt=""
-                    />
+                    <template v-for="image in chapterImages" :key="image">
+                        <!-- takes up room, so the end of the chapter is still only reached by scrolling -->
+                        <div
+                            v-if="settledImages.get(image) === false"
+                            class="mx-5 missing-page d-flex align-center justify-center text-medium-emphasis"
+                        >
+                            This page couldn't be loaded
+                        </div>
+                        <img
+                            v-else
+                            class="mx-5"
+                            :src="image"
+                            alt=""
+                            @load="imageSettled(image, true)"
+                            @error="imageSettled(image, false)"
+                        />
+                    </template>
+                    <!-- only there once every image has its height, it's on screen until then -->
+                    <div v-if="chapterLoaded" ref="chapterEnd" class="chapter-end" />
                 </div>
             </div>
         </v-main>
@@ -43,8 +55,9 @@
 import SideBottomBar from "@components/navigation/SideBottomBar.vue";
 import SettingsModal from "@components/modals/SettingsModal.vue";
 
-import { ref, onMounted, onUnmounted } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
+import { reportChapterFinished } from "@/assets/extensions";
 import { storage, bookmarkKey } from "@/assets/storage";
 import { attempt, fetchJson } from "@/assets/utility";
 
@@ -59,6 +72,45 @@ const errorMessage = ref("");
 
 // in-flight chapter request, aborted when a newer chapter is requested
 let chapterRequest: AbortController | null = null;
+
+// whether each image loaded or failed to; a broken one shouldn't stop the chapter from ever
+// finishing, but a chapter where none loaded wasn't read
+const settledImages = ref(new Map<string, boolean>());
+const chapterLoaded = computed(
+    () =>
+        chapterImages.value.length > 0 &&
+        settledImages.value.size === chapterImages.value.length &&
+        [...settledImages.value.values()].some(Boolean)
+);
+
+function imageSettled(image: string, loaded: boolean) {
+    // one from the previous chapter can still finish loading after it's been replaced
+    if (chapterImages.value.includes(image)) {
+        settledImages.value.set(image, loaded);
+    }
+}
+const chapterEnd = ref<HTMLElement | null>(null);
+let chapterEndObserver: IntersectionObserver | undefined;
+
+// scrolling to the end of a chapter counts as having read it, once per time it's opened
+watch(chapterEnd, (element) => {
+    chapterEndObserver?.disconnect();
+    if (!element) {
+        return;
+    }
+    const chapter = activeChapter.value;
+    chapterEndObserver = new IntersectionObserver(async ([entry]) => {
+        if (!entry.isIntersecting) {
+            return;
+        }
+        chapterEndObserver?.disconnect();
+        const result = await attempt(reportChapterFinished(mangaName, chapter));
+        if ("error" in result) {
+            console.error("Error reporting progress:", result.error);
+        }
+    });
+    chapterEndObserver.observe(element);
+});
 
 onMounted(async () => {
     // get chapter list from server
@@ -89,6 +141,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
     chapterRequest?.abort();
+    chapterEndObserver?.disconnect();
 });
 
 async function changeChapter(chapter: string) {
@@ -111,6 +164,7 @@ async function changeChapter(chapter: string) {
     }
     errorMessage.value = "";
     window.scrollTo(0, 0);
+    settledImages.value = new Map();
     chapterImages.value = result.data;
     activeChapter.value = chapter;
 }
@@ -171,5 +225,15 @@ function changeImageSpacing(spacing: number) {
 <style scoped>
 .image-container {
     width: 100%;
+}
+
+.chapter-end {
+    height: 1px;
+    flex-shrink: 0;
+}
+
+.missing-page {
+    min-height: 60vh;
+    border: 1px dashed currentColor;
 }
 </style>

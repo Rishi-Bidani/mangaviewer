@@ -3,15 +3,27 @@ import { fetchJson } from "./utility";
 // mirrors IMangaMetadata in server/src/system/metadata.ts
 
 /**
- * @brief found / not-found: result of the AniList lookup, skipped: folder name too short to
- * search for, pending: lookup still running, error: lookup failed, disabled: FETCH_METADATA is off
+ * @brief found / not-found: result of the lookup, skipped: folder name too short to search for,
+ * pending: lookup still running, error: lookup failed, disabled: FETCH_METADATA is off or there
+ * are no metadata sources
  */
 export type LookupState = "found" | "not-found" | "skipped" | "pending" | "error" | "disabled";
 
 export interface IMangaMetadata {
     lookup: LookupState;
-    anilistId?: number;
-    malId?: number;
+    /**
+     * @brief the id of the extension the details came from
+     */
+    source?: string;
+    /**
+     * @brief what that source calls this manga
+     */
+    sourceId?: string;
+    /**
+     * @brief what each site calls this manga, keyed by site, including the source itself
+     */
+    ids?: Record<string, string>;
+    links?: { label: string; url: string }[];
     title?: string;
     alternativeTitles?: string[];
     description?: string;
@@ -25,22 +37,27 @@ export interface IMangaMetadata {
     year?: number;
     endYear?: number;
     /**
-     * @brief average AniList score out of 100
+     * @brief average score out of 100
      */
     score?: number;
     popularity?: number;
     isAdult?: boolean;
-    url?: string;
-    malUrl?: string;
     /**
      * @brief when the details were fetched, changes every time they're fetched again
      */
     fetchedAt?: string;
     /**
-     * @brief the manga's metadata.json sets the anilistId, so one set on the settings page is
-     * ignored
+     * @brief the manga's metadata.json sets the match, so one set on the settings page is ignored
      */
-    anilistIdFromFile?: boolean;
+    matchFromFile?: boolean;
+    /**
+     * @brief someone chose the match or ids, rather than them coming from a search by folder name
+     */
+    matchConfirmed?: boolean;
+    /**
+     * @brief what the folder name is searched for as
+     */
+    searchTitle?: string;
 }
 
 /**

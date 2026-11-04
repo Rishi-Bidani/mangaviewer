@@ -1,4 +1,5 @@
-# configure with a .env file next to this one (copy .env.example)
+# configure with a .env file next to this one (copy .env.example); docker compose only reads one
+# from here, server/.env isn't used by this
 services:
   mangaviewer:
     # `docker compose pull && docker compose up -d` uses the image published by the
@@ -9,13 +10,19 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-8080}:8080"
+    # these and the defaults are all of the configuration; the server prints every setting when it
+    # starts
     environment:
       IGNORE_LIST: ${IGNORE_LIST:-}
       FETCH_METADATA: ${FETCH_METADATA:-false}
+      ENABLED_EXTENSIONS: ${ENABLED_EXTENSIONS:-}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-}
     volumes:
       - "${MANGA_DIR:?set MANGA_DIR in .env to the folder your manga is in}:/manga:ro"
-      # keeps fetched covers and details across container updates
+      # keeps the database and fetched covers across container updates
       - metadata:/data
+      # read-only, so an extension can't change itself or the others
+      - "${EXTENSIONS_DIR:-./extensions}:/data/extensions:ro"
 
 volumes:
   metadata:

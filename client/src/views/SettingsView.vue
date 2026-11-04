@@ -13,8 +13,7 @@
                         <h2 class="text-h6">Titles</h2>
                         <p class="text-body-2 text-medium-emphasis">
                             Choose which titles show their cover on the home page (saved on the
-                            server, so it applies on every device), or look a title up on AniList
-                            again.
+                            server, so it applies on every device), or look a title up again.
                         </p>
                     </div>
                     <v-btn
@@ -81,13 +80,13 @@
                                 <template v-slot:append>
                                     <v-btn
                                         icon="mdi-link-variant"
-                                        :variant="needsAniListId(mangaName) ? 'tonal' : 'text'"
-                                        :color="needsAniListId(mangaName) ? 'primary' : undefined"
+                                        :variant="needsMatch(mangaName) ? 'tonal' : 'text'"
+                                        :color="needsMatch(mangaName) ? 'primary' : undefined"
                                         size="small"
                                         class="mr-1"
-                                        :aria-label="`Set AniList entry for ${titleOf(mangaName)}`"
-                                        v-tooltip:top="'Set AniList entry'"
-                                        @click="showAniListIdDialog(mangaName)"
+                                        :aria-label="`Set metadata match for ${titleOf(mangaName)}`"
+                                        v-tooltip:top="'Set metadata match'"
+                                        @click="showMatchDialog(mangaName)"
                                     />
                                     <v-btn
                                         icon="mdi-refresh"
@@ -116,9 +115,11 @@
                         </v-list>
                     </v-card>
                 </template>
+
+                <ExtensionsSection @notify="notify" @source-changed="loadMetadata" />
             </v-container>
         </v-main>
-        <AniListIdDialog ref="aniListIdDialog" @saved="onAniListIdSaved" />
+        <MetadataMatchDialog ref="matchDialog" @saved="onMatchSaved" />
         <v-snackbar v-model="showNotice" :color="notice.color">{{ notice.text }}</v-snackbar>
     </v-app>
 </template>
@@ -138,13 +139,14 @@ import {
     type IMangaPreferences,
     type IPreferences,
 } from "@/assets/preferences";
-import AniListIdDialog from "@components/modals/AniListIdDialog.vue";
+import ExtensionsSection from "@components/ExtensionsSection.vue";
+import MetadataMatchDialog from "@components/modals/MetadataMatchDialog.vue";
 
 // lookups run on the server one at a time, so check back while some are still pending
 const METADATA_POLL_MS = 3000;
 
 const LOOKUP_DESCRIPTIONS: Partial<Record<LookupState, string>> = {
-    "not-found": "Not found on AniList, link it with 🔗",
+    "not-found": "Not found, link it with 🔗",
     skipped: "Name too short to look up, link it with 🔗",
     pending: "Looking up…",
     error: "Lookup failed",
@@ -202,10 +204,10 @@ onMounted(async () => {
     preferences.value = fetchedPreferences.data;
     loaded.value = true;
 
-    // opened from a manga's info page to link it to the right AniList entry
+    // opened from a manga's info page to link it to the right entry
     const link = route.query.link;
     if (typeof link === "string" && mangaNames.value.includes(link)) {
-        showAniListIdDialog(link);
+        showMatchDialog(link);
     }
 });
 
@@ -257,14 +259,14 @@ async function refetch(mangaName?: string) {
         notify("Metadata lookups are turned off on the server (FETCH_METADATA).", "warning");
     } else if (mangaName && lookups[0] === "skipped") {
         // too short to search for, so ask for the entry straight away
-        showAniListIdDialog(mangaName);
+        showMatchDialog(mangaName);
     } else if (mangaName) {
         promptIfNotFound.add(mangaName);
         promptForMissingIds();
     }
 }
 
-// titles refetched one at a time, whose AniList id is asked for if the lookup finds nothing
+// titles refetched one at a time, whose entry is asked for if the lookup finds nothing
 const promptIfNotFound = new Set<string>();
 
 function promptForMissingIds() {
@@ -275,32 +277,33 @@ function promptForMissingIds() {
         }
         promptIfNotFound.delete(mangaName);
         if (lookup === "not-found") {
-            showAniListIdDialog(mangaName);
+            showMatchDialog(mangaName);
             return;
         }
     }
 }
 
-const aniListIdDialog = ref<InstanceType<typeof AniListIdDialog>>();
+const matchDialog = ref<InstanceType<typeof MetadataMatchDialog>>();
 
-function needsAniListId(mangaName: string): boolean {
+function needsMatch(mangaName: string): boolean {
     const lookup = metadata.value[mangaName]?.lookup;
     return lookup === "not-found" || lookup === "skipped";
 }
 
-function showAniListIdDialog(mangaName: string) {
+function showMatchDialog(mangaName: string) {
     const entry = metadata.value[mangaName];
-    aniListIdDialog.value?.show({
+    matchDialog.value?.show({
         mangaName,
         title: titleOf(mangaName),
-        currentId: preferences.value[mangaName]?.anilistId,
-        matchedUrl: entry?.lookup === "found" ? entry.url : undefined,
-        fromFile: entry?.anilistIdFromFile ?? false,
+        searchTitle: entry?.searchTitle ?? mangaName,
+        current: preferences.value[mangaName]?.match,
+        matchedUrl: entry?.lookup === "found" ? entry.links?.[0]?.url : undefined,
+        fromFile: entry?.matchFromFile ?? false,
     });
 }
 
-// the new id is looked up right away, and asked for again if AniList has nothing for it
-function onAniListIdSaved(mangaName: string, saved: IMangaPreferences) {
+// the new match is looked up right away, and asked for again if the source has nothing for it
+function onMatchSaved(mangaName: string, saved: IMangaPreferences) {
     preferences.value = { ...preferences.value, [mangaName]: saved };
     refetch(mangaName);
 }

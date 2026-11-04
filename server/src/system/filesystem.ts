@@ -1,8 +1,10 @@
+// the manga library on disk, and reading and writing files safely
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import { getSettings } from "./settings.ts";
+import { getEnv } from "./env.ts";
+import { NotFoundError } from "./errors.ts";
 
 interface IFilesAndFolders {
     files: string[];
@@ -10,15 +12,10 @@ interface IFilesAndFolders {
 }
 
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".bmp"]);
+// <file>.<uuid>.tmp, as named by writeFileAtomic
+const TEMPORARY_FILE = /\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.tmp$/;
 
-/**
- * @brief thrown when a requested path would resolve outside the base manga folder
- */
-export class PathOutsideBaseError extends Error {
-    constructor() {
-        super("Path is outside the manga folder");
-    }
-}
+// ---- reading and writing files ----
 
 /**
  * @returns the parsed file, or undefined if it's missing or unreadable (which is warned about)
@@ -31,6 +28,22 @@ export async function readJson<T>(file: string): Promise<T | undefined> {
             console.warn(`Ignoring unreadable "${file}": ${(error as Error).message}`);
         }
         return undefined;
+    }
+}
+
+// windows refuses to replace a file that another program (e.g. a virus scanner) briefly has open
+async function renameWithRetry(from: string, to: string): Promise<void> {
+    for (let attempt = 1; ; attempt++) {
+        try {
+            await fs.rename(from, to);
+            return;
+        } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            if (attempt >= 5 || !(code === "EPERM" || code === "EBUSY" || code === "EACCES")) {
+                throw error;
+            }
+            await sleep(50 * attempt);
+        }
     }
 }
 
@@ -66,24 +79,7 @@ export async function removeLeftoverTemporaryFiles(folder: string): Promise<void
     await Promise.all(leftovers.map((file) => fs.rm(path.join(folder, file), { force: true })));
 }
 
-// <file>.<uuid>.tmp, as named by writeFileAtomic
-const TEMPORARY_FILE = /\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.tmp$/;
-
-// windows refuses to replace a file that another program (e.g. a virus scanner) briefly has open
-async function renameWithRetry(from: string, to: string): Promise<void> {
-    for (let attempt = 1; ; attempt++) {
-        try {
-            await fs.rename(from, to);
-            return;
-        } catch (error) {
-            const code = (error as NodeJS.ErrnoException).code;
-            if (attempt >= 5 || !(code === "EPERM" || code === "EBUSY" || code === "EACCES")) {
-                throw error;
-            }
-            await sleep(50 * attempt);
-        }
-    }
-}
+// ---- the manga library ----
 
 async function getFilesAndFolders(dir: string): Promise<IFilesAndFolders> {
     const filesAndFolders = (await fs.readdir(dir, { withFileTypes: true })).filter(
@@ -95,62 +91,73 @@ async function getFilesAndFolders(dir: string): Promise<IFilesAndFolders> {
 }
 
 /**
- * @brief joins segments onto the base folder, refusing anything that escapes it (e.g. "../")
+ * @returns the folder's contents
+ * @throws NotFoundError if it doesn't exist
  */
-async function resolveInBase(...segments: string[]): Promise<string> {
-    const baseFolder = path.resolve(await FileHandler.baseFolder);
+async function getLibraryFolder(dir: string, name: string): Promise<IFilesAndFolders> {
+    try {
+        return await getFilesAndFolders(dir);
+    } catch (error) {
+        const { code } = error as NodeJS.ErrnoException;
+        if (code === "ENOENT" || code === "ENOTDIR") {
+            throw new NotFoundError(`${name} doesn't exist`);
+        }
+        throw error;
+    }
+}
+
+// one folder in the library: "." or "a/b" are paths, and hidden folders aren't part of it
+function isFolderName(name: string): boolean {
+    return name !== "" && !name.startsWith(".") && !/[/\\]/.test(name);
+}
+
+/**
+ * @returns the path of a manga or something in it
+ * @throws NotFoundError if that isn't part of the library
+ */
+async function resolveInLibrary(manga: string, ...rest: string[]): Promise<string> {
+    const segments = [manga, ...rest];
+    const baseFolder = path.resolve(FileHandler.baseFolder);
     const target = path.resolve(baseFolder, ...segments);
     const relative = path.relative(baseFolder, target);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) {
-        throw new PathOutsideBaseError();
+    // the path check is for what's still a path on windows, like "C:folder"
+    const isOutside = relative.startsWith("..") || path.isAbsolute(relative);
+    if (!segments.every(isFolderName) || isOutside || !(await FileHandler.isListed(manga))) {
+        throw new NotFoundError(`${segments.join("/")} isn't in the library`);
     }
     return target;
 }
 
-/**
- * @returns the parsed file, or undefined if it is missing or unreadable (warning about the latter)
- */
-
 export default class FileHandler {
-    static get port(): Promise<number> {
-        return getSettings().then((settings) => settings.PORT);
-    }
-
-    static get baseFolder(): Promise<string> {
-        return getSettings().then((settings) => settings.BASE_MANGA_FOLDER);
-    }
-
-    static get ignoreList(): Promise<string[]> {
-        return getSettings().then((settings) => settings.IGNORE_LIST);
-    }
-
-    static get fetchMetadata(): Promise<boolean> {
-        return getSettings().then((settings) => settings.FETCH_METADATA);
-    }
-
-    static get metadataFolder(): Promise<string> {
-        return getSettings().then((settings) => settings.METADATA_FOLDER);
+    static get baseFolder(): string {
+        return getEnv().BASE_MANGA_FOLDER;
     }
 
     /**
-     * @returns the absolute path of the manga's folder, throwing ENOENT/ENOTDIR if it isn't one
+     * @brief whether it's the exact name of a manga in the list; comparing with IGNORE_LIST isn't
+     * enough, since on windows and macos other spellings like "NARUTO", "naruto." or the short name
+     * "NARUTO~1" open the same folder
+     */
+    static async isListed(manga: string): Promise<boolean> {
+        return (await FileHandler.getMangaList()).includes(manga);
+    }
+
+    /**
+     * @returns the absolute path of the manga's folder
+     * @throws NotFoundError if it isn't one
      */
     static async getMangaFolder(manga: string): Promise<string> {
-        const folder = await resolveInBase(manga);
-        if (!(await fs.stat(folder)).isDirectory()) {
-            throw Object.assign(new Error(`${manga} is not a folder`), { code: "ENOTDIR" });
-        }
-        return folder;
+        return resolveInLibrary(manga);
     }
 
     static async getMangaList(): Promise<string[]> {
-        const { folders } = await getFilesAndFolders(await FileHandler.baseFolder);
-        const ignoreList = await FileHandler.ignoreList;
-        return folders.filter((folder: string) => !ignoreList.includes(folder));
+        const { folders } = await getFilesAndFolders(FileHandler.baseFolder);
+        const ignored = getEnv().IGNORE_LIST;
+        return folders.filter((folder) => !ignored.includes(folder));
     }
 
     static async getChapterList(manga: string): Promise<string[]> {
-        const { folders } = await getFilesAndFolders(await resolveInBase(manga));
+        const { folders } = await getLibraryFolder(await resolveInLibrary(manga), manga);
         return folders;
     }
 
@@ -158,7 +165,10 @@ export default class FileHandler {
      * @returns the image file names inside the chapter folder
      */
     static async getChapterImages(manga: string, chapter: string): Promise<string[]> {
-        const { files } = await getFilesAndFolders(await resolveInBase(manga, chapter));
+        const { files } = await getLibraryFolder(
+            await resolveInLibrary(manga, chapter),
+            `${manga}/${chapter}`
+        );
         return files.filter((file) => IMAGE_EXTENSIONS.has(path.extname(file).toLowerCase()));
     }
 }

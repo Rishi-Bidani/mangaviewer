@@ -6,7 +6,7 @@
     "main": "dist/main.js",
     "files": [
         "dist",
-        "data"
+        "drizzle"
     ],
     "author": "Rishi",
     "license": "MIT",
@@ -15,21 +15,23 @@
         "build": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.build.json",
         "start": "node ./dist/main.js",
         "bundle": "tsdown",
+        "db:generate": "drizzle-kit generate",
         "lint": "biome lint",
         "format": "biome format --write",
         "check": "biome check --write"
     },
     "dependencies": {
-        "cors": "^2.8.5",
+        "drizzle-orm": "1.0.0-rc.4",
         "express": "^5.1.0",
-        "natural-orderby": "^3.0.1"
+        "natural-orderby": "^3.0.1",
+        "zod": "^4.6.7"
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.15",
         "@tsdown/exe": "0.23.1",
-        "@types/cors": "^2.8.19",
         "@types/express": "^5.0.0",
         "@types/node": "^24.19.2",
+        "drizzle-kit": "1.0.0-rc.4",
         "tsdown": "^0.23.1",
         "typescript": "^7.0.2"
     }

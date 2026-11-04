@@ -125,6 +125,43 @@
                             </template>
                         </v-alert>
 
+                        <section v-if="syncStatus.length > 0" class="mt-6">
+                            <h2 class="text-overline text-medium-emphasis">Sync</h2>
+                            <div
+                                v-for="target in syncStatus"
+                                :key="target.id"
+                                class="d-flex align-center ga-2 text-body-2 mb-1"
+                            >
+                                <v-icon
+                                    :icon="SYNC_ICONS[target.state].icon"
+                                    :color="SYNC_ICONS[target.state].color"
+                                    size="small"
+                                />
+                                <span>{{ target.name }}: {{ describeSync(target) }}</span>
+                            </div>
+                            <v-btn
+                                v-if="canConfirmMatch"
+                                variant="tonal"
+                                size="small"
+                                prepend-icon="mdi-check"
+                                class="mt-1"
+                                :loading="confirming"
+                                @click="confirmMatch"
+                            >
+                                It's {{ title }}, confirm the match
+                            </v-btn>
+                            <v-btn
+                                v-if="syncStatus.some(({ state }) => state === 'waiting')"
+                                variant="text"
+                                size="small"
+                                prepend-icon="mdi-link-variant"
+                                class="mt-1"
+                                :to="{ name: 'settings', query: { link: mangaName } }"
+                            >
+                                Link it
+                            </v-btn>
+                        </section>
+
                         <section v-if="metadata?.description" class="mt-6">
                             <h2 class="text-overline text-medium-emphasis">Description</h2>
                             <p class="description text-body-1">{{ metadata.description }}</p>
@@ -144,31 +181,18 @@
                             </div>
                         </section>
 
-                        <div
-                            v-if="metadata?.url || metadata?.malUrl"
-                            class="d-flex flex-wrap ga-2 mt-6"
-                        >
+                        <div v-if="metadata?.links?.length" class="d-flex flex-wrap ga-2 mt-6">
                             <v-btn
-                                v-if="metadata.url"
-                                :href="metadata.url"
+                                v-for="link in metadata.links"
+                                :key="link.url"
+                                :href="link.url"
                                 target="_blank"
                                 rel="noopener"
                                 variant="tonal"
                                 size="small"
                                 append-icon="mdi-open-in-new"
                             >
-                                AniList
-                            </v-btn>
-                            <v-btn
-                                v-if="metadata.malUrl"
-                                :href="metadata.malUrl"
-                                target="_blank"
-                                rel="noopener"
-                                variant="tonal"
-                                size="small"
-                                append-icon="mdi-open-in-new"
-                            >
-                                MyAnimeList
+                                {{ link.label }}
                             </v-btn>
                         </div>
 
@@ -208,17 +232,26 @@ import { useRoute, type RouteLocationRaw } from "vue-router";
 import { storage, bookmarkKey } from "@/assets/storage";
 import { attempt, fetchJson } from "@/assets/utility";
 import { coverUrl, type IMangaMetadata, type LookupState } from "@/assets/metadata";
-import { fetchPreferences } from "@/assets/preferences";
+import { fetchPreferences, saveMangaPreferences } from "@/assets/preferences";
+import { fetchSyncStatus, type ISyncStatus } from "@/assets/extensions";
 
 // the server looks mangas up one at a time, so check back while this one is pending
 const METADATA_POLL_MS = 3000;
 
 const LOOKUP_NOTICES: Partial<Record<LookupState, string>> = {
-    pending: "Looking up details on AniList…",
-    "not-found": "AniList didn't find this title, so there are no details for it.",
-    skipped: "The folder name is too short to look up on AniList.",
+    pending: "Looking up details…",
+    "not-found": "This title wasn't found, so there are no details for it.",
+    skipped: "The folder name is too short to look up.",
     error: "Looking up details failed, it will be tried again later.",
     disabled: "Details aren't looked up, because metadata lookups are turned off on the server.",
+};
+
+const SYNC_ICONS: Record<ISyncStatus["state"], { icon: string; color?: string }> = {
+    idle: { icon: "mdi-sync" },
+    sending: { icon: "mdi-sync" },
+    synced: { icon: "mdi-check-circle-outline", color: "success" },
+    waiting: { icon: "mdi-alert-circle-outline", color: "warning" },
+    failed: { icon: "mdi-alert-circle-outline", color: "error" },
 };
 
 // router params are already decoded, so encode them again when building api urls
@@ -231,10 +264,23 @@ const showCover = ref(true);
 const bookmark = ref("");
 const loaded = ref(false);
 const errorMessage = ref("");
+const syncStatus = ref<ISyncStatus[]>([]);
+const confirming = ref(false);
 
 let metadataPoll: ReturnType<typeof setTimeout> | undefined;
 
+async function loadSyncStatus() {
+    const result = await attempt(fetchSyncStatus(mangaName));
+    // the rest of the page doesn't depend on it
+    if ("error" in result) {
+        console.error("Error fetching the sync status:", result.error);
+        return;
+    }
+    syncStatus.value = result.data;
+}
+
 async function loadMetadata() {
+    loadSyncStatus();
     const result = await attempt(fetchJson<IMangaMetadata>(`${mangaPath}/metadata`));
     // the page still works without it, with the folder name and chapters
     if ("error" in result) {
@@ -323,6 +369,45 @@ const lookupNotice = computed(() =>
 const canLink = computed(
     () => metadata.value?.lookup === "not-found" || metadata.value?.lookup === "skipped"
 );
+
+function describeSync(target: ISyncStatus): string {
+    switch (target.state) {
+        case "synced":
+            return `up to ${target.chapter}`;
+        case "sending":
+            return "sending…";
+        case "idle":
+            return "nothing finished yet";
+        default:
+            return target.message ?? "";
+    }
+}
+
+// a title found by searching can be the wrong one, so what syncs to an account has to be confirmed
+const canConfirmMatch = computed(
+    () =>
+        syncStatus.value.some(({ state }) => state === "waiting") &&
+        metadata.value?.lookup === "found" &&
+        !metadata.value.matchConfirmed &&
+        !!metadata.value.source &&
+        !!metadata.value.sourceId
+);
+
+async function confirmMatch() {
+    const { source, sourceId } = metadata.value as IMangaMetadata;
+    confirming.value = true;
+    const result = await attempt(
+        saveMangaPreferences(mangaName, { match: { source: source!, id: sourceId! } })
+    );
+    confirming.value = false;
+    if ("error" in result) {
+        console.error("Error confirming the match:", result.error);
+        return;
+    }
+    // looking it up with the confirmed match is what sends what's waiting
+    clearTimeout(metadataPoll);
+    await loadMetadata();
+}
 
 /**
  * @param chapter the chapter to open, otherwise the reader picks (bookmark or first chapter)
