@@ -15,6 +15,7 @@ import type {
 } from "../extensions/api.ts";
 import { db } from "./database.ts";
 import { getEnv } from "./env.ts";
+import { readEpubPage } from "./epub.ts";
 import { NotFoundError } from "./errors.ts";
 import { type CallPriority, callExtension, guarded } from "./extensionCalls.ts";
 import { getActiveMetadataSource, getMetadataSource } from "./extensions.ts";
@@ -602,16 +603,18 @@ export async function getAllMetadata(refresh = false): Promise<Record<string, IM
 
 /**
  * @returns the cover image to show for the manga: a cover.* file in its folder, else the downloaded
- * cover of the entry it's currently matched to, else the first page of the first chapter
+ * cover of the entry it's currently matched to, else the first page of the first chapter; a file, or the image itself for a page of an epub
  */
-export async function getCoverPath(manga: string): Promise<string | undefined> {
+export async function getCover(
+    manga: string
+): Promise<{ file: string } | { data: Buffer; mediaType: string } | undefined> {
     const mangaFolder = await FileHandler.getMangaFolder(manga);
 
     const localCover = (await fs.readdir(mangaFolder)).find((file) =>
         LOCAL_COVER_FILES.has(file.toLowerCase())
     );
     if (localCover) {
-        return path.join(mangaFolder, localCover);
+        return { file: path.join(mangaFolder, localCover) };
     }
 
     const { match } = await readMangaSettings(mangaFolder, getMangaPreferences(manga).match);
@@ -619,7 +622,7 @@ export async function getCoverPath(manga: string): Promise<string | undefined> {
     if (isCachedFor(cached, match, getActiveMetadataSource()) && cached.cover) {
         const downloaded = path.join(getEnv().METADATA_FOLDER, cached.cover);
         if (await fs.stat(downloaded).catch(() => null)) {
-            return downloaded;
+            return { file: downloaded };
         }
     }
 
@@ -627,6 +630,16 @@ export async function getCoverPath(manga: string): Promise<string | undefined> {
     if (!firstChapter) {
         return undefined;
     }
-    const [firstPage] = orderBy(await FileHandler.getChapterImages(manga, firstChapter));
-    return firstPage && path.join(mangaFolder, firstChapter, firstPage);
+    const chapter = await FileHandler.getChapter(manga, firstChapter);
+    if (chapter.type === "folder") {
+        const [firstPage] = chapter.images;
+        return firstPage ? { file: path.join(chapter.folder, firstPage) } : undefined;
+    }
+    const [firstPage] = chapter.pages;
+    return (
+        firstPage && {
+            data: await readEpubPage(chapter.file, firstPage),
+            mediaType: firstPage.mediaType,
+        }
+    );
 }

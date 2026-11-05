@@ -2,6 +2,7 @@ import * as path from "node:path";
 import express from "express";
 import { orderBy } from "natural-orderby";
 import { z } from "zod";
+import { readEpubPage } from "./system/epub.ts";
 import { BadRequestError, NotFoundError } from "./system/errors.ts";
 import {
     finishSignIn,
@@ -19,7 +20,7 @@ import {
 import FileHandler from "./system/filesystem.ts";
 import {
     getAllMetadata,
-    getCoverPath,
+    getCover,
     getMetadata,
     parseMatchId,
     searchMetadataSource,
@@ -88,21 +89,44 @@ router.get("/mangas/:manga/chapters", async (req, res) => {
 });
 
 router.get("/mangas/:manga/chapters/:chapter/images", async (req, res) => {
-    // the urls of all the images of the chapter
+    // the urls of all the images of the chapter, in reading order
     const { manga, chapter } = req.params;
-    const images = orderBy(await FileHandler.getChapterImages(manga, chapter)).map(
-        (image) => `/images/${[manga, chapter, image].map(encodeURIComponent).join("/")}`
-    );
+    const found = await FileHandler.getChapter(manga, chapter);
+    const [mangaUrl, chapterUrl] = [manga, chapter].map(encodeURIComponent);
+    const images =
+        found.type === "folder"
+            ? found.images.map(
+                  (image) => `/images/${mangaUrl}/${chapterUrl}/${encodeURIComponent(image)}`
+              )
+            : found.pages.map(
+                  (_page, index) => `/api/mangas/${mangaUrl}/chapters/${chapterUrl}/pages/${index}`
+              );
     res.json(images);
 });
 
+router.get("/mangas/:manga/chapters/:chapter/pages/:page", async (req, res) => {
+    // a page of an epub chapter, numbered from 0
+    const { manga, chapter, page } = req.params;
+    const found = await FileHandler.getChapter(manga, chapter);
+    const epubPage =
+        found.type === "epub" && /^\d+$/.test(page) ? found.pages[Number(page)] : undefined;
+    if (found.type !== "epub" || !epubPage) {
+        throw new NotFoundError(`${manga}/${chapter} has no page ${page}`);
+    }
+    res.type(epubPage.mediaType).send(await readEpubPage(found.file, epubPage));
+});
+
 router.get("/mangas/:manga/cover", async (req, res) => {
-    const cover = await getCoverPath(req.params.manga);
+    const cover = await getCover(req.params.manga);
     if (!cover) {
         throw new NotFoundError("No cover");
     }
-    // the cache folder can be a hidden one (.mangaviewer in the standalone executables)
-    res.sendFile(cover, { dotfiles: "allow" });
+    if ("data" in cover) {
+        res.type(cover.mediaType).send(cover.data);
+    } else {
+        // the cache folder can be a hidden one (.mangaviewer in the standalone executables)
+        res.sendFile(cover.file, { dotfiles: "allow" });
+    }
 });
 
 // ---- metadata ----

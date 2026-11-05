@@ -9,6 +9,7 @@ it lets you comfortably enjoy your downloaded manga with features tailored for a
 -   [x] Image brightness control
 -   [x] Adjustable spacing between images
 -   [x] Bookmarking albeit not persistent (localStorage)
+-   [x] Chapters as folders of images or as manga EPUB files
 
 Please check the TODO if you wish to contribute
 
@@ -119,6 +120,21 @@ Settings:
 | `pnpm dev` | Runs the server and the Vite dev server with live reload |
 | `pnpm bundle` | Builds the standalone executables into `release/` (needs Node.js 25.7+) |
 | `pnpm lint` / `pnpm format` | Lints / formats both packages |
+
+### Your manga folder
+
+Every folder in the manga folder is a manga. Inside it, every folder of images is a chapter, and so
+is every `.epub` file, named after the file without `.epub`:
+
+```
+manga/
+  One Piece/
+    Chapter 1/        001.jpg, 002.jpg, ...
+    Volume 2.epub
+```
+
+EPUBs are read as manga: their pages are the images they show, in reading order. Text isn't shown,
+so a novel EPUB has no pages. A folder hides an EPUB of the same name.
 
 ### Covers and details
 

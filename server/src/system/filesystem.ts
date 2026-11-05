@@ -3,7 +3,9 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
+import { orderBy } from "natural-orderby";
 import { getEnv } from "./env.ts";
+import { getEpubPages, type IEpubPage } from "./epub.ts";
 import { NotFoundError } from "./errors.ts";
 
 interface IFilesAndFolders {
@@ -11,7 +13,15 @@ interface IFilesAndFolders {
     folders: string[];
 }
 
+/**
+ * @brief a chapter is a folder of images, or an epub file in the manga's folder
+ */
+export type IChapter =
+    | { type: "folder"; folder: string; images: string[] }
+    | { type: "epub"; file: string; pages: IEpubPage[] };
+
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".bmp"]);
+const EPUB_EXTENSION = ".epub";
 // <file>.<uuid>.tmp, as named by writeFileAtomic
 const TEMPORARY_FILE = /\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.tmp$/;
 
@@ -128,6 +138,13 @@ async function resolveInLibrary(manga: string, ...rest: string[]): Promise<strin
     return target;
 }
 
+// "Volume 1.epub" is the chapter "Volume 1"
+function epubChapterName(file: string): string | undefined {
+    return path.extname(file).toLowerCase() === EPUB_EXTENSION
+        ? file.slice(0, -EPUB_EXTENSION.length)
+        : undefined;
+}
+
 export default class FileHandler {
     static get baseFolder(): string {
         return getEnv().BASE_MANGA_FOLDER;
@@ -156,19 +173,42 @@ export default class FileHandler {
         return folders.filter((folder) => !ignored.includes(folder));
     }
 
+    /**
+     * @returns the names of the chapters: the manga's folders, and its epubs without ".epub"; a
+     * folder hides an epub of the same name
+     */
     static async getChapterList(manga: string): Promise<string[]> {
-        const { folders } = await getLibraryFolder(await resolveInLibrary(manga), manga);
-        return folders;
+        const { files, folders } = await getLibraryFolder(await resolveInLibrary(manga), manga);
+        const epubs = files
+            .map(epubChapterName)
+            .filter((name): name is string => !!name && !folders.includes(name));
+        return [...folders, ...epubs];
     }
 
     /**
-     * @returns the image file names inside the chapter folder
+     * @returns where the chapter is, and its images in reading order
+     * @throws NotFoundError if there's no such chapter
      */
-    static async getChapterImages(manga: string, chapter: string): Promise<string[]> {
-        const { files } = await getLibraryFolder(
-            await resolveInLibrary(manga, chapter),
-            `${manga}/${chapter}`
-        );
-        return files.filter((file) => IMAGE_EXTENSIONS.has(path.extname(file).toLowerCase()));
+    static async getChapter(manga: string, chapter: string): Promise<IChapter> {
+        const mangaFolder = await resolveInLibrary(manga);
+        const { files, folders } = await getLibraryFolder(mangaFolder, manga);
+        // names from the listing, so they can't lead out of the folder
+        if (folders.includes(chapter)) {
+            const folder = path.join(mangaFolder, chapter);
+            const { files: images } = await getLibraryFolder(folder, `${manga}/${chapter}`);
+            return {
+                type: "folder",
+                folder,
+                images: orderBy(
+                    images.filter((file) => IMAGE_EXTENSIONS.has(path.extname(file).toLowerCase()))
+                ),
+            };
+        }
+        const epub = files.find((file) => epubChapterName(file) === chapter);
+        if (epub) {
+            const file = path.join(mangaFolder, epub);
+            return { type: "epub", file, pages: await getEpubPages(file) };
+        }
+        throw new NotFoundError(`${manga}/${chapter} isn't in the library`);
     }
 }
