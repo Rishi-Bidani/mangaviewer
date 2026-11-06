@@ -198,8 +198,19 @@ in any combination; switch them on on the settings page. See
 
 ## Screenshots 📸
 
-![image](https://github.com/Rishi-Bidani/mangaviewer/assets/64310471/91866776-6928-4835-8464-30947f5719f1)
-![image](https://github.com/user-attachments/assets/b4fcc4aa-8476-4fb4-81b9-59b02cb2f57e)
+Covers and details are looked up on AniList; the chapter pages are placeholders.
 
+![The library, with a cover for every manga](docs/screenshots/home.webp)
+
+<p>
+  <img src="docs/screenshots/manga.webp" alt="A manga's details" width="49%">
+  <img src="docs/screenshots/reader.webp" alt="Reading an EPUB volume" width="49%">
+</p>
+
+![The settings page](docs/screenshots/settings.webp)
+
+On a phone:
+
+![The library, a manga's details, the reader and the settings page on a phone](docs/screenshots/phone.webp)
 
 Feel free to fork, star ⭐, or contribute! Have ideas? Create an issue or PR!
